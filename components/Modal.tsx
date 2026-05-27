@@ -110,6 +110,7 @@ export default function Modal() {
   const [answers, setAnswers] = useState<Record<number, Answer>>({});
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [otherShown, setOtherShown] = useState<boolean>(false);
+  const [submitting, setSubmitting] = useState<boolean>(false);
   const bodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -118,6 +119,7 @@ export default function Modal() {
       setQIndex(0);
       setAnswers({});
       setErrorMsg("");
+      setSubmitting(false);
     }
   }, [isOpen]);
 
@@ -225,6 +227,79 @@ export default function Modal() {
     return !!ans;
   }
 
+  function showError(msg: string) {
+    setErrorMsg(msg);
+    setSubmitting(false);
+    // Remonte en haut du modal pour que l'erreur soit immédiatement visible.
+    requestAnimationFrame(() => bodyRef.current?.scrollTo({ top: 0, behavior: "smooth" }));
+  }
+
+  async function submitCheckout(finalAnswers: Record<number, Answer>) {
+    console.log("[checkout] submitting…");
+    setSubmitting(true);
+    setErrorMsg("");
+
+    // Construit un payload lisible : { "Métier": "...", "Spécialité": "...", ... }
+    const payload: Record<string, Answer> = {};
+    questions.forEach((q, i) => {
+      if (finalAnswers[i] !== undefined) payload[q.k] = finalAnswers[i];
+    });
+
+    if (Object.keys(payload).length === 0) {
+      console.error("[checkout] questionnaire vide");
+      showError("Le questionnaire est vide. Complétez au moins une question.");
+      return;
+    }
+
+    let res: Response;
+    try {
+      res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionnaire: payload }),
+      });
+      console.log("[checkout] HTTP", res.status);
+    } catch (err) {
+      console.error("[checkout] network failure:", err);
+      showError("Erreur réseau — vérifiez votre connexion et réessayez.");
+      return;
+    }
+
+    if (res.status === 401) {
+      console.error("[checkout] 401 unauthenticated — redirect /signup");
+      close();
+      router.push("/signup?next=questionnaire");
+      return;
+    }
+
+    let data: { url?: string; error?: string; message?: string } = {};
+    try {
+      data = await res.json();
+    } catch (err) {
+      console.error("[checkout] réponse non-JSON:", err);
+      showError(`Réponse serveur invalide (HTTP ${res.status}).`);
+      return;
+    }
+    console.log("[checkout] payload reçu:", data);
+
+    if (!res.ok) {
+      console.error(`[checkout] HTTP ${res.status} —`, data);
+      showError(
+        `${data.message || data.error || "Erreur serveur."} (HTTP ${res.status})`,
+      );
+      return;
+    }
+
+    if (!data.url) {
+      console.error("[checkout] Stripe n'a pas retourné d'URL:", data);
+      showError("Stripe n'a pas retourné d'URL de paiement. Réessayez ou contactez le support.");
+      return;
+    }
+
+    console.log("[checkout] redirection vers", data.url);
+    window.location.href = data.url;
+  }
+
   function next() {
     const ans = getAnswer();
     if (!isValid(ans)) {
@@ -235,10 +310,10 @@ export default function Modal() {
       );
       return;
     }
-    setAnswers((prev) => ({ ...prev, [qIndex]: ans }));
+    const updated = { ...answers, [qIndex]: ans };
+    setAnswers(updated);
     if (isLast) {
-      close();
-      router.push("/payment");
+      submitCheckout(updated);
       return;
     }
     setQIndex((i) => i + 1);
@@ -367,20 +442,33 @@ export default function Modal() {
           <div className="q-progress-bar" style={{ width: `${progress}%` }} />
         </div>
         <div className="q-body" ref={bodyRef}>
+          {errorMsg && (
+            <div className="error active" style={{ marginTop: 0, marginBottom: 16, fontSize: 15 }}>
+              ⚠ {errorMsg}
+            </div>
+          )}
           <span className="q-kicker">{item.k}</span>
           <h2 className="q-title">{item.q}</h2>
           {item.hint && <p className="q-hint">{item.hint}</p>}
           <div className="field">{renderField()}</div>
-          <div className={`error${errorMsg ? " active" : ""}`}>
-            {errorMsg || "Veuillez répondre à cette question pour continuer."}
-          </div>
+          {!errorMsg && (
+            <div className="error">Veuillez répondre à cette question pour continuer.</div>
+          )}
         </div>
         <div className="q-actions">
-          <button className="btn btn-light" onClick={prev}>
+          <button className="btn btn-light" onClick={prev} disabled={submitting}>
             ← Retour
           </button>
-          <button className={isLast ? "btn btn-green" : "btn btn-primary"} onClick={next}>
-            {isLast ? "Valider le questionnaire ↗" : "Continuer →"}
+          <button
+            className={isLast ? "btn btn-green" : "btn btn-primary"}
+            onClick={next}
+            disabled={submitting}
+          >
+            {submitting
+              ? "Préparation du paiement…"
+              : isLast
+              ? "Valider et payer ↗"
+              : "Continuer →"}
           </button>
         </div>
       </div>

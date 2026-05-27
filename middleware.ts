@@ -13,7 +13,8 @@ export const config = {
      * - _next/image (optim images)
      * - favicon.ico
      * - fichiers d'image dans /public
+     * - api/stripe/webhook (raw body Stripe — pas de cookies utilisateur, on saute)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|api/stripe/webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
