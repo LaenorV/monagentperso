@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import CtaButton from "@/components/CtaButton";
 import VideoCarousel from "@/components/VideoCarousel";
+import AuthReassure from "@/components/AuthReassure";
 
 export default function HomePage() {
   return (
@@ -44,6 +45,7 @@ export default function HomePage() {
               <div className="trust"><span className="trust-ico"><Check size={18} strokeWidth={2.5} /></span> 3 min de questionnaire</div>
               <div className="trust"><span className="trust-ico"><Check size={18} strokeWidth={2.5} /></span> 49,90€ lancement</div>
             </div>
+            <AuthReassure />
           </div>
           <div className="hero-panel">
             <div className="hero-panel-inner">

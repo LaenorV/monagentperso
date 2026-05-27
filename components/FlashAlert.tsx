@@ -1,20 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useAuth } from "./AuthProvider";
 import { useModal } from "./ModalContext";
 
+// Routes où le pop-up est masqué.
+const HIDDEN_PATHS = ["/login", "/signup", "/dashboard"];
+
 export default function FlashAlert() {
-  const { open } = useModal();
+  const { user } = useAuth();
+  const { isOpen: modalOpen } = useModal();
+  const pathname = usePathname() ?? "";
+  const router = useRouter();
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
+  // Timer de 9s au montage de l'app. Ré-armé à chaque refresh (état React reset).
   useEffect(() => {
-    const wasShown = sessionStorage.getItem("flashAlertShown");
-    if (wasShown === "1") return;
-    const t = setTimeout(() => {
-      setVisible(true);
-      sessionStorage.setItem("flashAlertShown", "1");
-    }, 9000);
+    const t = setTimeout(() => setVisible(true), 9000);
     return () => clearTimeout(t);
   }, []);
 
@@ -26,10 +30,15 @@ export default function FlashAlert() {
   function handleClick() {
     setVisible(false);
     setDismissed(true);
-    open();
+    router.push(user ? "/dashboard?openQuestionnaire=1" : "/login?next=questionnaire");
   }
 
+  // Masque définitif : utilisateur a fermé via la croix.
   if (dismissed) return null;
+  // Masque temporaire : pages auth/dashboard ou modal ouvert. Reviendra automatiquement
+  // dès qu'on quitte ces pages ou qu'on ferme le modal (le composant reste monté dans le layout).
+  if (modalOpen) return null;
+  if (HIDDEN_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) return null;
 
   return (
     <div className={`flash-alert${visible ? " show" : ""}`} role="alert" aria-live="polite">

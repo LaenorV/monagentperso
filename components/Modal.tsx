@@ -367,9 +367,7 @@ export default function Modal() {
           <div className="q-progress-bar" style={{ width: `${progress}%` }} />
         </div>
         <div className="q-body" ref={bodyRef}>
-          <span className="q-kicker">
-            {item.k} <span className="q-kicker-num">· {qIndex + 1}/{questions.length}</span>
-          </span>
+          <span className="q-kicker">{item.k}</span>
           <h2 className="q-title">{item.q}</h2>
           {item.hint && <p className="q-hint">{item.hint}</p>}
           <div className="field">{renderField()}</div>

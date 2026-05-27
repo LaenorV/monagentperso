@@ -7,6 +7,8 @@ import Footer from "@/components/Footer";
 import Modal from "@/components/Modal";
 import FlashAlert from "@/components/FlashAlert";
 import { ModalProvider } from "@/components/ModalContext";
+import { AuthProvider } from "@/components/AuthProvider";
+import { createClient } from "@/lib/supabase/server";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,18 +29,25 @@ export const metadata: Metadata = {
     "Votre agent IA professionnel personnalisé selon votre métier, vos règles et vos documents. Livraison sous 24h sur ChatGPT, Claude ou Gemini.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <html lang="fr" className={`${inter.variable} ${fraunces.variable}`}>
       <body>
-        <ModalProvider>
-          <Background />
-          <Nav />
-          <main>{children}</main>
-          <Footer />
-          <Modal />
-          <FlashAlert />
-        </ModalProvider>
+        <AuthProvider initialUser={user}>
+          <ModalProvider>
+            <Background />
+            <Nav />
+            <main>{children}</main>
+            <Footer />
+            <Modal />
+            <FlashAlert />
+          </ModalProvider>
+        </AuthProvider>
       </body>
     </html>
   );
