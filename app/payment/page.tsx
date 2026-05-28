@@ -30,7 +30,7 @@ export default async function PaymentPage() {
         <span className="section-eyebrow">Paiement sécurisé</span>
         <h1>Finalisez votre commande</h1>
         <p style={{ fontSize: 18, color: "var(--muted)", lineHeight: 1.6, marginTop: 12 }}>
-          Votre agent sera livré sous 24h maximum à l'email de votre compte.
+          Votre agent sera livré sous 24h maximum, envoyé par email et accessible directement dans votre espace utilisateur.
         </p>
         <div className="old-price" style={{ textAlign: "center" }}>79,90€</div>
         <p className="price" style={{ color: "var(--ink)", fontSize: 70 }}>49,90€</p>

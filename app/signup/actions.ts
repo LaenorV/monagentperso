@@ -7,12 +7,12 @@ import { createClient } from "@/lib/supabase/server";
 export type SignupState = {
   error?: string;
   pending?: boolean;
-  needsConfirmation?: boolean;
+  accountCreated?: boolean;
 };
 
 function nextToPath(next: string): string {
-  if (next === "questionnaire") return "/dashboard?openQuestionnaire=1";
-  return "/dashboard";
+  if (next === "questionnaire") return "/dashboard?openQuestionnaire=1&welcome=1";
+  return "/dashboard?welcome=1";
 }
 
 export async function signupAction(
@@ -44,6 +44,8 @@ export async function signupAction(
     email,
     password,
     options: {
+      // emailRedirectTo conservé pour les cas où Confirm email serait réactivé.
+      // Aucun impact quand la confirmation est désactivée.
       emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(destination)}`,
     },
   });
@@ -52,12 +54,11 @@ export async function signupAction(
     return { error: error.message };
   }
 
-  // Cas heureux : confirmation email désactivée dans Supabase → session immédiate.
+  // Cas standard (Confirm email désactivé) : session immédiate → /dashboard.
   if (data.session) {
     redirect(destination);
   }
 
-  // Fallback : Supabase exige toujours une confirmation email.
-  // Pour le supprimer : Supabase Dashboard → Authentication → Providers → Email → "Confirm email" OFF.
-  return { needsConfirmation: true };
+  // Cas rare : compte créé sans session retournée → invitation à se connecter.
+  return { accountCreated: true };
 }

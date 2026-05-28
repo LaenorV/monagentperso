@@ -65,8 +65,8 @@ export default function MyAgentCard({ hasPaidOrder, delivery }: Props) {
           <div>
             <p className="agent-card-headline">Votre demande a bien été reçue.</p>
             <p className="agent-card-sub">
-              Votre agent est en cours de création. Vous recevrez un email dès qu'il sera prêt,
-              et il apparaîtra ici également sous 24h.
+              Votre agent personnalisé est en cours de création. Il sera prêt sous 24h,
+              envoyé par email et retrouvable directement dans cet espace utilisateur.
             </p>
             {delivery?.agent_name && (
               <p className="agent-card-meta">Nom prévu : <strong>{delivery.agent_name}</strong></p>

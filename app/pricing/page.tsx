@@ -15,7 +15,7 @@ export default function PricingPage() {
         <span style={{ color: "var(--accent)" }}>49,90€</span>
       </h1>
       <p className="section-sub" style={{ marginTop: 18, maxWidth: 760, fontSize: 19 }}>
-        Le prix inclut le questionnaire, l'analyse de vos réponses, la création de votre agent IA personnalisé et la livraison sous 24h maximum à l'adresse email renseignée.
+        Le prix inclut le questionnaire, l'analyse de vos réponses, la création de votre agent IA personnalisé et la livraison sous 24h maximum, par email et dans votre espace utilisateur.
       </p>
       <div className="pricing-grid" style={{ marginTop: 40 }}>
         <div className="blog-card" style={{ cursor: "default" }}>

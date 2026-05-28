@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import LogoutButton from "./LogoutButton";
 import AutoOpenQuestionnaire from "./AutoOpenQuestionnaire";
+import WelcomeBanner from "./WelcomeBanner";
 import MyAgentCard, { type AgentDelivery } from "./MyAgentCard";
 import MyRequestCard from "./MyRequestCard";
 
@@ -89,6 +90,7 @@ export default async function DashboardPage() {
   return (
     <div className="container dashboard">
       <AutoOpenQuestionnaire />
+      <WelcomeBanner />
       <div className="dashboard-head">
         <div>
           <span className="section-eyebrow">Espace client</span>

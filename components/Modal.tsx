@@ -421,7 +421,7 @@ export default function Modal() {
             <input id="consent" type="checkbox" defaultChecked={c.consent || false} /> J'accepte d'être recontacté pour affiner les besoins de mon agent
           </label>
           <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 14, lineHeight: 1.55 }}>
-            ✉ C'est sur cet email que vous recevrez votre agent IA personnalisé sous <strong style={{ color: "var(--ink)" }}>24h maximum</strong>. Vérifiez bien qu'il est correct.
+            ✉ Votre agent personnalisé sera préparé sous <strong style={{ color: "var(--ink)" }}>24h</strong>, envoyé à cet email et également accessible directement dans votre espace utilisateur. Vérifiez bien que l'adresse est correcte.
           </p>
         </div>
       );

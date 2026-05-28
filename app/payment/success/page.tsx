@@ -59,7 +59,7 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
         <h1>{confirmed ? "Merci pour votre commande !" : "Paiement en cours de traitement…"}</h1>
         <p style={{ fontSize: 17, color: "var(--muted)", lineHeight: 1.65, marginTop: 14 }}>
           {confirmed
-            ? "Vos réponses sont enregistrées. Vous recevrez votre agent IA personnalisé sous 24h maximum."
+            ? "Votre demande a bien été reçue. Votre agent personnalisé sera préparé sous 24h et vous sera envoyé par email. Vous pourrez également le retrouver directement dans votre espace utilisateur."
             : "Le traitement Stripe est en cours. Si ce message persiste, rafraîchissez la page dans quelques secondes."}
         </p>
         {amount && (

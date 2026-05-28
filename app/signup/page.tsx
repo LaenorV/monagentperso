@@ -23,11 +23,19 @@ function SignupForm() {
             : "Quelques secondes pour accéder à votre espace et suivre la création de votre agent."}
         </p>
 
-        {state.needsConfirmation ? (
-          <div className="auth-success">
-            ✉ Vérifiez votre boîte mail : nous venons de vous envoyer un lien de confirmation.
-            Une fois cliqué, vous serez redirigé{next === "questionnaire" ? " vers le questionnaire" : " vers votre espace"}.
-          </div>
+        {state.accountCreated ? (
+          <>
+            <div className="auth-success">
+              ✓ Compte créé. Vous pouvez maintenant vous connecter.
+            </div>
+            <Link
+              href={loginHref}
+              className="btn btn-primary"
+              style={{ width: "100%", marginTop: 14, justifyContent: "center" }}
+            >
+              Se connecter →
+            </Link>
+          </>
         ) : (
           <form action={formAction} className="auth-form">
             <input type="hidden" name="next" value={next} />
