@@ -6,6 +6,7 @@ import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Modal from "@/components/Modal";
 import FlashAlert from "@/components/FlashAlert";
+import FaqChatbot from "@/components/FaqChatbot";
 import { ModalProvider } from "@/components/ModalContext";
 import { AuthProvider } from "@/components/AuthProvider";
 import { createClient } from "@/lib/supabase/server";
@@ -46,6 +47,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Footer />
             <Modal />
             <FlashAlert />
+            <FaqChatbot />
           </ModalProvider>
         </AuthProvider>
       </body>
