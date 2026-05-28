@@ -10,6 +10,7 @@ import FaqChatbot from "@/components/FaqChatbot";
 import { ModalProvider } from "@/components/ModalContext";
 import { AuthProvider } from "@/components/AuthProvider";
 import { createClient } from "@/lib/supabase/server";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -50,6 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <FaqChatbot />
           </ModalProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
