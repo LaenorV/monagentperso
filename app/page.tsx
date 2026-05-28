@@ -17,7 +17,7 @@ import {
   Zap,
 } from "lucide-react";
 import CtaButton from "@/components/CtaButton";
-import VideoCarousel from "@/components/VideoCarousel";
+import ComparisonVideos from "@/components/ComparisonVideos";
 import AuthReassure from "@/components/AuthReassure";
 
 export default function HomePage() {
@@ -167,10 +167,10 @@ export default function HomePage() {
         <div className="container">
           <div className="section-head">
             <span className="section-eyebrow">Exemples concrets</span>
-            <h2 className="section-title">Voir le résultat avant de se lancer.</h2>
-            <p className="section-sub">Des démonstrations courtes pour comprendre ce que votre agent saura faire.</p>
+            <h2 className="section-title">Comparez par vous-même.</h2>
+            <p className="section-sub">Même demande, deux outils. La différence se voit à l'écran, en moins d'une minute.</p>
           </div>
-          <VideoCarousel />
+          <ComparisonVideos />
           <div className="examples-cta">
             <CtaButton className="btn btn-primary btn-xl">
               Réclamer mon Agent IA personnalisé →
