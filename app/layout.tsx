@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Fraunces } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Background from "@/components/Background";
 import Nav from "@/components/Nav";
@@ -50,6 +51,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <FaqChatbot />
           </ModalProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );

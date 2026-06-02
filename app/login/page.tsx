@@ -3,6 +3,7 @@
 import { useActionState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 import { loginAction, type LoginState } from "./actions";
 
 const initialState: LoginState = {};
@@ -11,6 +12,7 @@ function LoginForm() {
   const params = useSearchParams();
   const next = params.get("next") ?? "";
   const redirectedFrom = params.get("redirectedFrom") ?? "";
+  const urlError = params.get("error");
   const signupHref = next ? `/signup?next=${encodeURIComponent(next)}` : "/signup";
   const [state, formAction, pending] = useActionState(loginAction, initialState);
 
@@ -25,6 +27,17 @@ function LoginForm() {
             ? "Identifiez-vous pour réclamer votre agent IA personnalisé — le questionnaire s'ouvre dès la connexion."
             : "Accédez à votre espace pour retrouver votre agent et le suivi de votre commande."}
         </p>
+
+        {urlError && (
+          <div className="auth-error" style={{ marginBottom: 16 }}>
+            {urlError === "google"
+              ? "La connexion Google a échoué. Réessayez ou utilisez votre email."
+              : "Votre session a expiré. Merci de vous reconnecter."}
+          </div>
+        )}
+
+        <GoogleSignInButton next={next} label="Se connecter avec Google" />
+        <div className="auth-divider"><span>ou par email</span></div>
 
         <form action={formAction} className="auth-form">
           <input type="hidden" name="next" value={next} />

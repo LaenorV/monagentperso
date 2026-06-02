@@ -15,6 +15,8 @@ import {
   Rocket,
   Check,
   Zap,
+  Store,
+  ArrowRight,
 } from "lucide-react";
 import CtaButton from "@/components/CtaButton";
 import ComparisonVideos from "@/components/ComparisonVideos";
@@ -116,6 +118,34 @@ export default function HomePage() {
             <h3>Aucune formation</h3>
             <p>Simple à utiliser, même sans aucune maîtrise technique.</p>
           </article>
+        </div>
+      </div>
+
+      {/* === MARKETPLACE === */}
+      <div className="container">
+        <div className="home-mk">
+          <div className="home-mk-text">
+            <span className="section-eyebrow">Nouveau · Marketplace</span>
+            <h2 className="home-mk-title">Une marketplace IA, des milliers de ressources.</h2>
+            <p className="home-mk-sub">
+              Au-delà de votre agent sur-mesure, explorez notre marketplace : des milliers
+              d'outils IA, des prompts prêts à l'emploi, des agents GPT et Claude sur-entraînés
+              et des workflows automatisés en JSON. Tout pour aller plus vite, au même endroit.
+            </p>
+            <ul className="home-mk-list">
+              <li><Check size={18} strokeWidth={2.5} /> Outils IA classés par métier et par usage</li>
+              <li><Check size={18} strokeWidth={2.5} /> Prompts, agents & workflows prêts à l'emploi</li>
+              <li><Check size={18} strokeWidth={2.5} /> Recherche et filtres pour trouver en quelques secondes</li>
+            </ul>
+            <Link href="/marketplace" className="btn btn-primary btn-xl">
+              Découvrir la marketplace <ArrowRight size={18} strokeWidth={2.2} />
+            </Link>
+          </div>
+          <div className="home-mk-visual" aria-hidden="true">
+            <div className="home-mk-picto">
+              <Store size={150} strokeWidth={1.2} />
+            </div>
+          </div>
         </div>
       </div>
 

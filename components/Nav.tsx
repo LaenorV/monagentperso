@@ -38,6 +38,7 @@ export default function Nav() {
 
         <div className="navlinks">
           <Link href="/">Accueil</Link>
+          <Link href="/marketplace">Marketplace</Link>
           <Link href="/blog">Blog</Link>
           <Link href="/pricing">Pricing</Link>
         </div>
@@ -84,6 +85,7 @@ export default function Nav() {
         <div className="mobile-menu" role="dialog" aria-label="Menu mobile">
           <div className="mobile-menu-section">
             <Link href="/">Accueil</Link>
+            <Link href="/marketplace">Marketplace</Link>
             <Link href="/blog">Blog</Link>
             <Link href="/pricing">Pricing</Link>
           </div>

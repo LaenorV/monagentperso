@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Sparkles, Clock, CheckCircle2, AlertTriangle, ExternalLink } from "lucide-react";
+import QuestionnaireCta from "@/components/QuestionnaireCta";
 
 export type DeliveryStatus = "in_progress" | "delivered" | "revision_needed";
 
@@ -43,9 +43,9 @@ export default function MyAgentCard({ hasPaidOrder, delivery }: Props) {
         </div>
         <p>Vous n'avez pas encore réclamé votre agent.</p>
         <div style={{ marginTop: 18 }}>
-          <Link href="/" className="btn btn-primary btn-xl">
+          <QuestionnaireCta className="btn btn-primary btn-xl">
             Réclamer mon agent →
-          </Link>
+          </QuestionnaireCta>
         </div>
       </div>
     );

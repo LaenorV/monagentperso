@@ -3,6 +3,7 @@
 import { useActionState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 import { signupAction, type SignupState } from "./actions";
 
 const initialState: SignupState = {};
@@ -37,7 +38,10 @@ function SignupForm() {
             </Link>
           </>
         ) : (
-          <form action={formAction} className="auth-form">
+          <>
+            <GoogleSignInButton next={next} label="S'inscrire avec Google" />
+            <div className="auth-divider"><span>ou par email</span></div>
+            <form action={formAction} className="auth-form">
             <input type="hidden" name="next" value={next} />
             <div>
               <label htmlFor="email">Email</label>
@@ -61,7 +65,8 @@ function SignupForm() {
                 ? "Créer mon compte et lancer le questionnaire →"
                 : "Créer mon compte →"}
             </button>
-          </form>
+            </form>
+          </>
         )}
 
         <div className="auth-footer">
