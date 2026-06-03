@@ -35,12 +35,18 @@ type SearchParams = Promise<{
 }>;
 
 // Onglets de types de contenu. Seul "Outils IA" est actif pour cette première version.
-const CONTENT_TABS = [
+const CONTENT_TABS: {
+  key: string;
+  label: string;
+  Icon: typeof Store;
+  active?: boolean;
+  href?: string;
+}[] = [
   { key: "outils", label: "Outils IA", Icon: Store, active: true },
-  { key: "prompts", label: "Prompts", Icon: FileText, active: false },
-  { key: "gpt", label: "Agents GPT", Icon: Bot, active: false },
-  { key: "claude", label: "Agents Claude", Icon: Sparkles, active: false },
-  { key: "workflows", label: "Workflows JSON", Icon: Workflow, active: false },
+  { key: "prompts", label: "Prompts", Icon: FileText },
+  { key: "gpt", label: "Agents GPT", Icon: Bot, href: "/agents-gpt" },
+  { key: "claude", label: "Agents Claude", Icon: Sparkles, href: "/agents-claude" },
+  { key: "workflows", label: "Workflows JSON", Icon: Workflow },
 ];
 
 function buildHref(
@@ -151,11 +157,15 @@ export default async function MarketplacePage({
       <div className="container">
         {/* === ONGLETS TYPES DE CONTENU === */}
         <div className="mk-tabs" role="tablist" aria-label="Types de contenu">
-          {CONTENT_TABS.map(({ key, label, Icon, active }) =>
+          {CONTENT_TABS.map(({ key, label, Icon, active, href }) =>
             active ? (
               <span key={key} className="mk-tab mk-tab-active" role="tab" aria-selected="true">
                 <Icon size={16} strokeWidth={2.1} /> {label}
               </span>
+            ) : href ? (
+              <Link key={key} href={href} className="mk-tab" role="tab">
+                <Icon size={16} strokeWidth={2.1} /> {label}
+              </Link>
             ) : (
               <span key={key} className="mk-tab mk-tab-soon" role="tab" aria-disabled="true">
                 <Icon size={16} strokeWidth={2.1} /> {label}

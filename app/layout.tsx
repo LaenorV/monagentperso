@@ -8,6 +8,7 @@ import Footer from "@/components/Footer";
 import Modal from "@/components/Modal";
 import FlashAlert from "@/components/FlashAlert";
 import FaqChatbot from "@/components/FaqChatbot";
+import AffiliateTracker from "@/components/AffiliateTracker";
 import { ModalProvider } from "@/components/ModalContext";
 import { AuthProvider } from "@/components/AuthProvider";
 import { createClient } from "@/lib/supabase/server";
@@ -42,6 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         <AuthProvider initialUser={user}>
           <ModalProvider>
+            <AffiliateTracker />
             <Background />
             <Nav />
             <main>{children}</main>

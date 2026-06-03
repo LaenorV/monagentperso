@@ -5,6 +5,7 @@ import AutoOpenQuestionnaire from "./AutoOpenQuestionnaire";
 import WelcomeBanner from "./WelcomeBanner";
 import MyAgentCard, { type AgentDelivery } from "./MyAgentCard";
 import MyRequestCard from "./MyRequestCard";
+import PurchasedAgents, { type AgentPurchase } from "./PurchasedAgents";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +64,13 @@ export default async function DashboardPage() {
   }
   // ============================================================
 
+  // Agents prêts à l'emploi achetés (RLS : l'utilisateur ne voit que les siens).
+  const { data: agentPurchases } = await supabase
+    .from("ready_made_agent_purchases")
+    .select("agent_slug, agent_name, agent_type, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
   const paidResponse: PaidResponse | null =
     paidResponses && paidResponses.length > 0 ? (paidResponses[0] as PaidResponse) : null;
 
@@ -100,6 +108,8 @@ export default async function DashboardPage() {
       </div>
 
       <MyAgentCard hasPaidOrder={!!paidResponse} delivery={delivery} />
+
+      <PurchasedAgents purchases={(agentPurchases ?? []) as AgentPurchase[]} />
 
       {paidResponse && (
         <MyRequestCard

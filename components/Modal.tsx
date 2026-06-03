@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { useModal } from "./ModalContext";
+import { getAffiliateRef } from "@/lib/affiliate";
 
 type Question =
   | { k: string; q: string; type: "text"; ph?: string; optional?: boolean; hint?: string }
@@ -253,10 +254,14 @@ export default function Modal() {
 
     let res: Response;
     try {
+      const affiliateRef = getAffiliateRef();
       res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ questionnaire: payload }),
+        body: JSON.stringify({
+          questionnaire: payload,
+          affiliate_ref: affiliateRef || undefined,
+        }),
       });
       console.log("[checkout] HTTP", res.status);
     } catch (err) {

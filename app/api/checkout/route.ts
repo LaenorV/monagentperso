@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { stripe } from "@/lib/stripe";
+import { sanitizeRef } from "@/lib/affiliate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ function devOrGeneric(devMsg: string, prodMsg: string) {
 
 export async function POST(req: NextRequest) {
   // 1. Parse body — accepte { questionnaire } (flux modal) ou { pendingId } (flux /payment)
-  let body: { questionnaire?: unknown; pendingId?: unknown };
+  let body: { questionnaire?: unknown; pendingId?: unknown; affiliate_ref?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -28,6 +29,8 @@ export async function POST(req: NextRequest) {
 
   const questionnaire = body.questionnaire;
   const pendingIdInput = body.pendingId;
+  // Affiliation : ref nettoyé. "" si absent/invalide → on stockera null.
+  const bodyAffiliateRef = sanitizeRef(typeof body.affiliate_ref === "string" ? body.affiliate_ref : "");
 
   if (
     (!questionnaire || typeof questionnaire !== "object") &&
@@ -85,12 +88,14 @@ export async function POST(req: NextRequest) {
   }
 
   let pending: { id: string } | null = null;
+  // Ref affilié effectif pour cette session (body en flux modal, pending en flux /payment).
+  let affiliateRef = bodyAffiliateRef;
 
   if (typeof pendingIdInput === "string" && pendingIdInput.length > 0) {
     // Cas A — flux /payment : reprise d'un pending existant. Sécurité : on vérifie ownership.
     const { data: existing, error: fetchErr } = await admin
       .from("pending_questionnaires")
-      .select("id, user_id, status")
+      .select("id, user_id, status, affiliate_ref")
       .eq("id", pendingIdInput)
       .single();
 
@@ -121,6 +126,8 @@ export async function POST(req: NextRequest) {
     }
 
     pending = { id: existing.id };
+    // En reprise, on conserve le ref déjà capté lors de la création du pending.
+    affiliateRef = sanitizeRef(existing.affiliate_ref) || bodyAffiliateRef;
   } else {
     // Cas B — flux modal : insertion d'un nouveau pending.
     const { data: created, error: insertError } = await admin
@@ -130,6 +137,7 @@ export async function POST(req: NextRequest) {
         email: user.email,
         questionnaire,
         status: "pending_payment",
+        affiliate_ref: affiliateRef || null,
       })
       .select()
       .single();
@@ -154,16 +162,20 @@ export async function POST(req: NextRequest) {
   }
 
   // 5. Crée la Stripe Checkout Session
+  // metadata : on n'ajoute affiliate_ref que s'il existe (valeurs Stripe = strings).
+  const metadata: Record<string, string> = {
+    pending_questionnaire_id: pending.id,
+    user_id: user.id,
+  };
+  if (affiliateRef) metadata.affiliate_ref = affiliateRef;
+
   let session;
   try {
     session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: [{ price: priceId, quantity: 1 }],
       customer_email: user.email ?? undefined,
-      metadata: {
-        pending_questionnaire_id: pending.id,
-        user_id: user.id,
-      },
+      metadata,
       success_url: `${siteUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl}/payment/cancel`,
     });
