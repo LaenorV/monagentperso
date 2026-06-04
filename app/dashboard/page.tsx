@@ -4,6 +4,7 @@ import LogoutButton from "./LogoutButton";
 import AutoOpenQuestionnaire from "./AutoOpenQuestionnaire";
 import WelcomeBanner from "./WelcomeBanner";
 import MyAgentCard, { type AgentDelivery } from "./MyAgentCard";
+import DeliveredAgents from "./DeliveredAgents";
 import MyRequestCard from "./MyRequestCard";
 import Library, { type LibraryItem, type LibraryItemKind } from "./Library";
 import { getAgent } from "@/lib/ready-made-agents";
@@ -89,6 +90,11 @@ export default async function DashboardPage() {
     }
   }
 
+  // Toutes les livraisons "delivered" de l'utilisateur connecté (user_id == user.id).
+  const deliveredDeliveries: AgentDelivery[] = ((deliveries ?? []) as AgentDelivery[]).filter(
+    (d) => d.status === "delivered",
+  );
+
   // ── Construction de "Ma bibliothèque" (agrégation de tous les achats) ──────
   const libraryItems: LibraryItem[] = [];
 
@@ -151,7 +157,11 @@ export default async function DashboardPage() {
         <LogoutButton />
       </div>
 
-      <MyAgentCard hasPaidOrder={!!paidResponse} delivery={delivery} />
+      {deliveredDeliveries.length > 0 ? (
+        <DeliveredAgents deliveries={deliveredDeliveries} />
+      ) : (
+        <MyAgentCard hasPaidOrder={!!paidResponse} delivery={delivery} />
+      )}
 
       <Library items={libraryItems} />
 
