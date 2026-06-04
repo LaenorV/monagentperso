@@ -5,7 +5,9 @@ import AutoOpenQuestionnaire from "./AutoOpenQuestionnaire";
 import WelcomeBanner from "./WelcomeBanner";
 import MyAgentCard, { type AgentDelivery } from "./MyAgentCard";
 import MyRequestCard from "./MyRequestCard";
-import PurchasedAgents, { type AgentPurchase } from "./PurchasedAgents";
+import Library, { type LibraryItem, type LibraryItemKind } from "./Library";
+import { getAgent } from "@/lib/ready-made-agents";
+import ResumePurchaseBanner from "@/components/ResumePurchaseBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -87,6 +89,47 @@ export default async function DashboardPage() {
     }
   }
 
+  // ── Construction de "Ma bibliothèque" (agrégation de tous les achats) ──────
+  const libraryItems: LibraryItem[] = [];
+
+  // Agent personnalisé (49,90 €) — présent dès qu'une commande payée existe.
+  if (paidResponse) {
+    const customStatus =
+      !delivery || delivery.status === "in_progress"
+        ? "en_cours"
+        : delivery.status === "revision_needed"
+        ? "revision"
+        : "livre";
+    const customHref =
+      customStatus === "livre" && delivery?.agent_url ? delivery.agent_url : null;
+    libraryItems.push({
+      key: "custom-agent",
+      name: delivery?.agent_name || "Mon agent personnalisé",
+      kind: "custom",
+      category: "Agent personnalisé · 49,90 €",
+      date: paidResponse.created_at,
+      status: customStatus,
+      href: customHref,
+      external: !!customHref,
+      locked: customStatus !== "livre",
+    });
+  }
+
+  // Agents prêts à l'emploi (4,90 €).
+  for (const p of agentPurchases ?? []) {
+    libraryItems.push({
+      key: `rm-${p.agent_slug}`,
+      name: p.agent_name,
+      kind: (p.agent_type as LibraryItemKind) || "both",
+      category: getAgent(p.agent_slug)?.category ?? "Agent prêt à l'emploi",
+      date: p.created_at,
+      status: null,
+      href: `/dashboard/agents/${p.agent_slug}`,
+      external: false,
+      locked: false,
+    });
+  }
+
   const createdAt = user.created_at
     ? new Date(user.created_at).toLocaleDateString("fr-FR", {
         day: "numeric",
@@ -99,6 +142,7 @@ export default async function DashboardPage() {
     <div className="container dashboard">
       <AutoOpenQuestionnaire />
       <WelcomeBanner />
+      <ResumePurchaseBanner />
       <div className="dashboard-head">
         <div>
           <span className="section-eyebrow">Espace client</span>
@@ -109,7 +153,7 @@ export default async function DashboardPage() {
 
       <MyAgentCard hasPaidOrder={!!paidResponse} delivery={delivery} />
 
-      <PurchasedAgents purchases={(agentPurchases ?? []) as AgentPurchase[]} />
+      <Library items={libraryItems} />
 
       {paidResponse && (
         <MyRequestCard

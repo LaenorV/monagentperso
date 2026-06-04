@@ -1558,3 +1558,55 @@ h1{margin:24px 0 0;max-width:780px;font-size:clamp(46px,5.8vw,76px);line-height:
   .agent-card-foot{flex-direction:column;align-items:stretch}
   .purchased-agent{flex-wrap:wrap}
 }
+
+/* === BADGES additionnels === */
+.agent-badge-custom{background:#fbf0e3;color:#9a3412;border-color:#eed7c2}
+.agent-badge-prompt{background:#e8f1fa;color:#0d3b66;border-color:#cfe0f0}
+.agent-badge-workflow{background:#e7f4ee;color:#147a4d;border-color:#bfe3d0}
+
+/* === MA BIBLIOTHÈQUE (dashboard) === */
+.library-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 18px}
+.library-tab{
+  display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  border:1px solid var(--line-strong);background:var(--paper);
+  border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--ink-2);
+  font-family:'Inter',sans-serif;transition:all .18s ease;
+}
+.library-tab:hover{border-color:var(--accent-3);color:var(--accent-2)}
+.library-tab-active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.library-tab-count{font-size:11px;opacity:.6;font-weight:700}
+.library-tab-active .library-tab-count{opacity:.8}
+.library-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.library-item{
+  display:flex;flex-direction:column;
+  border:1px solid var(--line);background:var(--paper-2);
+  border-radius:16px;padding:18px;transition:all .2s ease;
+}
+.library-item:hover{border-color:var(--beige-deep);box-shadow:var(--shadow-sm)}
+.library-item-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.library-item-name{margin:4px 0 0;font-size:17px;font-weight:700;letter-spacing:-.015em;color:var(--ink)}
+.library-item-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:10px 0 14px}
+.library-item-foot{margin-top:auto}
+.lib-btn-disabled{opacity:.6;cursor:default;pointer-events:none}
+.library-empty{text-align:center;padding:28px 10px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.library-empty p{color:var(--muted);margin:0}
+.library-empty-filter{color:var(--muted);font-size:14px;padding:18px 0}
+
+/* === BANNIÈRE REPRISE D'ACHAT === */
+.resume-banner{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  background:var(--accent-soft);border:1px solid var(--beige-deep);
+  border-radius:14px;padding:12px 16px;margin-bottom:18px;
+  color:var(--ink);font-size:14.5px;box-shadow:var(--shadow-sm);
+}
+.resume-banner > svg{color:var(--accent)}
+.resume-banner span{flex:1;min-width:180px}
+.resume-banner-close{
+  background:transparent;border:0;cursor:pointer;color:var(--muted);
+  display:flex;align-items:center;padding:4px;border-radius:8px;
+}
+.resume-banner-close:hover{color:var(--ink);background:rgba(0,0,0,.05)}
+
+@media(max-width:600px){
+  .library-grid{grid-template-columns:1fr}
+}

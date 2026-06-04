@@ -5,11 +5,28 @@ import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { getAffiliateRef } from "@/lib/affiliate";
+import { setPendingPurchase, clearPendingPurchase } from "@/lib/ready-made-agents";
 
 type Props = {
   slug: string;
   priceLabel: string;
 };
+
+/** Lance le checkout Stripe pour un agent. Utilisé ici et par la bannière de reprise. */
+export async function launchAgentCheckout(slug: string): Promise<string | null> {
+  const res = await fetch("/api/agent-checkout", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      agent_slug: slug,
+      affiliate_ref: getAffiliateRef() || undefined,
+    }),
+  });
+  if (res.status === 401) return "UNAUTH";
+  const data: { url?: string; message?: string } = await res.json().catch(() => ({}));
+  if (!res.ok || !data.url) throw new Error(data.message || "checkout_failed");
+  return data.url;
+}
 
 export default function AgentBuyButton({ slug, priceLabel }: Props) {
   const { user } = useAuth();
@@ -20,50 +37,32 @@ export default function AgentBuyButton({ slug, priceLabel }: Props) {
   async function handleClick() {
     setError("");
 
-    // Non connecté → on l'envoie se connecter puis revenir sur la page agents.
+    // Non connecté → on garde l'intention d'achat et on envoie créer un compte.
     if (!user) {
-      router.push(`/login?next=agents&redirectedFrom=/agents-gpt`);
+      setPendingPurchase(slug);
+      const here =
+        typeof window !== "undefined" ? window.location.pathname : "/agents-gpt";
+      router.push(`/signup?redirect=${encodeURIComponent(here)}`);
       return;
     }
 
     setLoading(true);
-    let res: Response;
     try {
-      res = await fetch("/api/agent-checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          agent_slug: slug,
-          affiliate_ref: getAffiliateRef() || undefined,
-        }),
-      });
+      const url = await launchAgentCheckout(slug);
+      if (url === "UNAUTH") {
+        setPendingPurchase(slug);
+        router.push(`/signup?redirect=/agents-gpt`);
+        return;
+      }
+      if (url) {
+        clearPendingPurchase();
+        window.location.href = url;
+        return;
+      }
     } catch {
-      setError("Erreur réseau — réessayez.");
-      setLoading(false);
-      return;
+      setError("Impossible de lancer le paiement — réessayez.");
     }
-
-    if (res.status === 401) {
-      router.push(`/login?next=agents`);
-      return;
-    }
-
-    let data: { url?: string; message?: string } = {};
-    try {
-      data = await res.json();
-    } catch {
-      setError("Réponse serveur invalide.");
-      setLoading(false);
-      return;
-    }
-
-    if (!res.ok || !data.url) {
-      setError(data.message || "Impossible de lancer le paiement.");
-      setLoading(false);
-      return;
-    }
-
-    window.location.href = data.url;
+    setLoading(false);
   }
 
   return (

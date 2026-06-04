@@ -149,3 +149,34 @@ export function isValidAgentSlug(slug: string): boolean {
 export function agentsByType(type: "gpt" | "claude"): ReadyMadeAgent[] {
   return READY_MADE_AGENTS.filter((a) => a.type === type || a.type === "both");
 }
+
+// --- Intention d'achat (reprise après connexion) ---------------------------
+// Clé localStorage. Helpers guardés → safe à importer côté serveur (no-op).
+export const PENDING_PURCHASE_KEY = "map_pending_purchase";
+
+export function setPendingPurchase(slug: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(PENDING_PURCHASE_KEY, slug);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function getPendingPurchase(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return window.localStorage.getItem(PENDING_PURCHASE_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function clearPendingPurchase() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(PENDING_PURCHASE_KEY);
+  } catch {
+    /* ignore */
+  }
+}

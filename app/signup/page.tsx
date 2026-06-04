@@ -11,7 +11,12 @@ const initialState: SignupState = {};
 function SignupForm() {
   const params = useSearchParams();
   const next = params.get("next") ?? "";
-  const loginHref = next ? `/login?next=${encodeURIComponent(next)}` : "/login";
+  const redirect = params.get("redirect") ?? "";
+  const loginHref = next
+    ? `/login?next=${encodeURIComponent(next)}`
+    : redirect
+    ? `/login?redirectedFrom=${encodeURIComponent(redirect)}`
+    : "/login";
   const [state, formAction, pending] = useActionState(signupAction, initialState);
 
   return (
@@ -21,6 +26,8 @@ function SignupForm() {
         <p className="auth-sub">
           {next === "questionnaire"
             ? "Quelques secondes pour créer votre compte — le questionnaire s'ouvre juste après."
+            : redirect
+            ? "Créez votre compte pour débloquer cette ressource — vous reprenez juste après."
             : "Quelques secondes pour accéder à votre espace et suivre la création de votre agent."}
         </p>
 
@@ -43,6 +50,7 @@ function SignupForm() {
             <div className="auth-divider"><span>ou par email</span></div>
             <form action={formAction} className="auth-form">
             <input type="hidden" name="next" value={next} />
+            <input type="hidden" name="redirect" value={redirect} />
             <div>
               <label htmlFor="email">Email</label>
               <input id="email" name="email" type="email" required autoComplete="email" placeholder="vous@exemple.fr" />

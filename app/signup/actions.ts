@@ -23,6 +23,8 @@ export async function signupAction(
   const password = String(formData.get("password") ?? "");
   const passwordConfirm = String(formData.get("passwordConfirm") ?? "");
   const next = String(formData.get("next") ?? "");
+  // Reprise d'un parcours (ex. achat agent) : on revient sur la page d'origine.
+  const redirectTo = String(formData.get("redirect") ?? "");
 
   if (!email || !password) {
     return { error: "Email et mot de passe requis." };
@@ -38,7 +40,8 @@ export async function signupAction(
   const headersList = await headers();
   const origin =
     headersList.get("origin") ?? `http://${headersList.get("host") ?? "localhost:3000"}`;
-  const destination = nextToPath(next);
+  // Une destination interne (commençant par "/") prime sur le mapping par défaut.
+  const destination = redirectTo.startsWith("/") ? redirectTo : nextToPath(next);
 
   const { data, error } = await supabase.auth.signUp({
     email,

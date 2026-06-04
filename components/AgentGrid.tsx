@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Bot, Sparkles, Check, ArrowRight } from "lucide-react";
 import { agentsByType, AGENT_PRICE_LABEL } from "@/lib/ready-made-agents";
 import AgentBuyButton from "./AgentBuyButton";
+import ResumePurchaseBanner from "./ResumePurchaseBanner";
 
 type Props = { platform: "gpt" | "claude" };
 
@@ -14,6 +15,8 @@ export default function AgentGrid({ platform }: Props) {
 
   return (
     <div className="container agents-page">
+      <ResumePurchaseBanner />
+
       {/* HERO */}
       <div className="agents-hero">
         <span className="section-eyebrow">
