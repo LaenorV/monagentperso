@@ -118,7 +118,7 @@ export default async function DashboardPage() {
   // Agents prêts à l'emploi (4,90 €).
   for (const p of agentPurchases ?? []) {
     libraryItems.push({
-      key: `rm-${p.agent_slug}`,
+      key: `rm-${p.agent_slug}-${p.agent_type}-${p.created_at}`,
       name: p.agent_name,
       kind: (p.agent_type as LibraryItemKind) || "both",
       category: getAgent(p.agent_slug)?.category ?? "Agent prêt à l'emploi",

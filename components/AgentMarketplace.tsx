@@ -24,7 +24,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "./AuthProvider";
-import { launchAgentCheckout } from "./AgentBuyButton";
+import { launchAgentCheckout, encodePending, type AgentPlatform } from "./AgentBuyButton";
 import ResumePurchaseBanner from "./ResumePurchaseBanner";
 import {
   READY_MADE_AGENTS,
@@ -70,6 +70,10 @@ function typeNoun(t: AgentType): string {
   return "cet agent IA";
 }
 
+function defaultPlatform(f: FilterKey): AgentPlatform {
+  return f === "claude" ? "claude" : "gpt";
+}
+
 function matchesType(a: ReadyMadeAgent, f: FilterKey): boolean {
   if (f === "all") return true;
   if (f === "gpt") return a.type === "gpt" || a.type === "both";
@@ -109,6 +113,7 @@ export default function AgentMarketplace({
   const [query, setQuery] = useState("");
   const [usage, setUsage] = useState("");
   const [modalAgent, setModalAgent] = useState<ReadyMadeAgent | null>(null);
+  const [platform, setPlatform] = useState<AgentPlatform>("gpt");
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState("");
 
@@ -146,6 +151,8 @@ export default function AgentMarketplace({
     });
   }, [filter, query, usage]);
 
+  const platformLabel = platform === "claude" ? "Claude" : "ChatGPT";
+
   function clearHover() {
     if (hoverTimer.current) {
       clearTimeout(hoverTimer.current);
@@ -157,8 +164,8 @@ export default function AgentMarketplace({
   function onUnlock(a: ReadyMadeAgent) {
     clearHover();
     if (!user) {
-      setPendingPurchase(a.slug);
-      router.push(`/signup?redirect=${encodeURIComponent(pathname || "/agents-gpt")}`);
+      setPendingPurchase(encodePending(a.slug, defaultPlatform(filter)));
+      router.push(`/signup?redirect=${encodeURIComponent(pathname || "/marketplace")}`);
       return;
     }
     openModal(a);
@@ -167,6 +174,7 @@ export default function AgentMarketplace({
   function openModal(a: ReadyMadeAgent) {
     setError("");
     setConfirming(false);
+    setPlatform(defaultPlatform(filter)); // version pré-sélectionnée selon l'onglet
     setModalAgent(a);
   }
 
@@ -182,10 +190,10 @@ export default function AgentMarketplace({
     setConfirming(true);
     setError("");
     try {
-      const url = await launchAgentCheckout(modalAgent.slug);
+      const url = await launchAgentCheckout(modalAgent.slug, platform);
       if (url === "UNAUTH") {
-        setPendingPurchase(modalAgent.slug);
-        router.push(`/signup?redirect=${encodeURIComponent(pathname || "/agents-gpt")}`);
+        setPendingPurchase(encodePending(modalAgent.slug, platform));
+        router.push(`/signup?redirect=${encodeURIComponent(pathname || "/marketplace")}`);
         return;
       }
       if (url) {
@@ -345,14 +353,43 @@ export default function AgentMarketplace({
             <TypeBadges type={modalAgent.type} />
             <p className="agent-modal-desc">{modalAgent.shortDescription}</p>
 
+            {modalAgent.type === "both" && (
+              <div className="agent-modal-version">
+                <span className="agent-modal-version-label">Choisissez votre version</span>
+                <div className="amk-seg" role="group" aria-label="Version de l'agent">
+                  <button
+                    type="button"
+                    className={platform === "gpt" ? "amk-seg-on" : ""}
+                    onClick={() => setPlatform("gpt")}
+                  >
+                    <Bot size={15} strokeWidth={2.2} /> ChatGPT
+                  </button>
+                  <button
+                    type="button"
+                    className={platform === "claude" ? "amk-seg-on" : ""}
+                    onClick={() => setPlatform("claude")}
+                  >
+                    <Sparkles size={15} strokeWidth={2.2} /> Claude
+                  </button>
+                </div>
+                <p className="agent-modal-version-note">
+                  Vous recevrez uniquement la version <strong>{platformLabel}</strong> (instructions
+                  dédiées + base de connaissance).
+                </p>
+              </div>
+            )}
+
             <div className="agent-modal-price">
               <span>Prix unique</span>
               <b>{modalAgent.priceLabel}</b>
             </div>
 
             <p className="agent-modal-reassure">
-              Vous êtes sur le point de débloquer {typeNoun(modalAgent.type)} pour{" "}
-              <strong>{modalAgent.priceLabel}</strong>. Après validation du paiement, il sera
+              Vous êtes sur le point de débloquer{" "}
+              {modalAgent.type === "both"
+                ? `la version ${platformLabel} de cet agent IA`
+                : typeNoun(modalAgent.type)}{" "}
+              pour <strong>{modalAgent.priceLabel}</strong>. Après validation du paiement, il sera
               automatiquement ajouté à votre espace utilisateur, dans votre bibliothèque. Vous pourrez
               le consulter à tout moment depuis votre compte.
             </p>
@@ -378,7 +415,11 @@ export default function AgentMarketplace({
                 onClick={confirmPurchase}
                 disabled={confirming}
               >
-                {confirming ? "Redirection vers le paiement…" : `Confirmer l'achat · ${modalAgent.priceLabel}`}
+                {confirming
+                  ? "Redirection vers le paiement…"
+                  : modalAgent.type === "both"
+                  ? `Confirmer · version ${platformLabel} · ${modalAgent.priceLabel}`
+                  : `Confirmer l'achat · ${modalAgent.priceLabel}`}
               </button>
             </div>
           </div>

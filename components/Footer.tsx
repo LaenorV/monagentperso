@@ -10,7 +10,6 @@ export default function Footer() {
         </div>
         <div>
           <Link href="/">Accueil</Link>
-          <Link href="/agents-gpt">Agents IA</Link>
           <Link href="/blog">Blog</Link>
           <Link href="/pricing">Pricing</Link>
           <Link href="/programme-partenaire">Programme partenaire</Link>

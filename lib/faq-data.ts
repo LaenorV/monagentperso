@@ -12,6 +12,7 @@ export type FaqItem = {
 
 export const FAQ_CATEGORIES: FaqCategory[] = [
   { id: "start", label: "Pour commencer" },
+  { id: "marketplace", label: "Marketplace & agents 4,90 €" },
   { id: "payment", label: "Paiement & sécurité" },
   { id: "questionnaire", label: "Le questionnaire" },
   { id: "account", label: "Mon compte" },
@@ -84,6 +85,58 @@ export const FAQ_ITEMS: FaqItem[] = [
     category: "start",
     q: "Mon agent fonctionnera-t-il pour mon équipe entière ?",
     a: "L'agent est lié au compte ChatGPT, Claude ou Gemini sur lequel vous le configurez. Pour un usage en équipe, cela dépend du plan choisi sur la plateforme (versions Team / Workspace existent).",
+  },
+
+  // ============================================================
+  // 1bis. MARKETPLACE & AGENTS PRÊTS À L'EMPLOI (4,90 €)
+  // ============================================================
+  {
+    id: "what-marketplace",
+    category: "marketplace",
+    q: "Qu'est-ce que la marketplace d'agents prêts à l'emploi ?",
+    a: "C'est un catalogue d'agents IA déjà conçus et sur-entraînés pour une mission précise : Humanizer, CV, Dissertation, Résumeur, Fiches & Quiz, Meta-Prompt, Prépa entretien, Slides… Vous les débloquez à l'unité pour 4,90 € et les utilisez immédiatement dans ChatGPT ou Claude.",
+  },
+  {
+    id: "ready-vs-custom",
+    category: "marketplace",
+    q: "Quelle différence avec l'agent personnalisé à 49,90 € ?",
+    a: "Les agents prêts à l'emploi (4,90 €) sont génériques mais excellents, livrés instantanément après paiement. L'agent personnalisé (49,90 €) est créé sur-mesure pour VOTRE métier à partir de votre questionnaire, et livré sous 24h. Les deux sont complémentaires.",
+  },
+  {
+    id: "gpt-or-claude",
+    category: "marketplace",
+    q: "Version ChatGPT ou Claude : laquelle choisir ?",
+    a: "Chaque agent existe en deux versions. Au moment de débloquer, vous choisissez ChatGPT ou Claude, et vous recevez uniquement la version choisie (ses instructions dédiées + la base de connaissance). Prenez simplement la version de l'outil que vous utilisez au quotidien.",
+  },
+  {
+    id: "what-i-get-490",
+    category: "marketplace",
+    q: "Que reçois-je exactement après un achat à 4,90 € ?",
+    a: "Les instructions complètes de l'agent (à coller dans un GPT personnalisé sur ChatGPT, ou dans un Projet sur Claude) ainsi que sa base de connaissance au format PDF. Tout est accessible immédiatement dans votre espace, section « Ma bibliothèque ».",
+  },
+  {
+    id: "where-find-agent",
+    category: "marketplace",
+    q: "Où retrouver un agent que j'ai acheté ?",
+    a: "Dans votre espace utilisateur, section « Ma bibliothèque ». Vous y filtrez vos achats par type (Agents GPT, Agents Claude…) et ouvrez chaque agent pour copier ses instructions et télécharger son PDF.",
+  },
+  {
+    id: "how-install-ready",
+    category: "marketplace",
+    q: "Comment installer un agent prêt à l'emploi ?",
+    a: "En 2 minutes : créez un GPT (ChatGPT → Explorer les GPTs → Créer) ou un Projet (Claude → Projects → Create project), collez les instructions fournies dans le champ « Instructions », uploadez le PDF dans la base de connaissance, puis lancez la conversation.",
+  },
+  {
+    id: "need-account-buy-490",
+    category: "marketplace",
+    q: "Dois-je avoir un compte pour débloquer un agent à 4,90 € ?",
+    a: "Oui. Si vous n'êtes pas connecté, on vous invite d'abord à créer un compte — votre choix d'agent est mémorisé pour reprendre l'achat juste après. Ainsi, tous vos achats restent rattachés à votre espace.",
+  },
+  {
+    id: "reuse-ready-agent",
+    category: "marketplace",
+    q: "Puis-je réutiliser l'agent autant de fois que je veux ?",
+    a: "Oui. Une fois débloqué, l'agent reste disponible dans votre bibliothèque et s'utilise sans limite dans votre ChatGPT ou Claude. C'est un achat unique, sans abonnement.",
   },
 
   // ============================================================

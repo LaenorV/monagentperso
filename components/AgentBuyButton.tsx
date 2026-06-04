@@ -1,24 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Lock } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { getAffiliateRef } from "@/lib/affiliate";
 import { setPendingPurchase, clearPendingPurchase } from "@/lib/ready-made-agents";
 
+export type AgentPlatform = "gpt" | "claude";
+
 type Props = {
   slug: string;
+  platform: AgentPlatform;
   priceLabel: string;
+  label?: string;
 };
 
-/** Lance le checkout Stripe pour un agent. Utilisé ici et par la bannière de reprise. */
-export async function launchAgentCheckout(slug: string): Promise<string | null> {
+/**
+ * Lance le checkout Stripe pour un agent dans une version précise (gpt | claude).
+ * Utilisé ici et par la bannière de reprise.
+ */
+export async function launchAgentCheckout(
+  slug: string,
+  platform: AgentPlatform,
+): Promise<string | null> {
   const res = await fetch("/api/agent-checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       agent_slug: slug,
+      platform,
       affiliate_ref: getAffiliateRef() || undefined,
     }),
   });
@@ -28,30 +39,31 @@ export async function launchAgentCheckout(slug: string): Promise<string | null> 
   return data.url;
 }
 
-export default function AgentBuyButton({ slug, priceLabel }: Props) {
+/** Encode l'intention d'achat (slug + version) pour la reprise après connexion. */
+export function encodePending(slug: string, platform: AgentPlatform): string {
+  return `${slug}::${platform}`;
+}
+
+export default function AgentBuyButton({ slug, platform, priceLabel, label }: Props) {
   const { user } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   async function handleClick() {
     setError("");
-
-    // Non connecté → on garde l'intention d'achat et on envoie créer un compte.
     if (!user) {
-      setPendingPurchase(slug);
-      const here =
-        typeof window !== "undefined" ? window.location.pathname : "/agents-gpt";
-      router.push(`/signup?redirect=${encodeURIComponent(here)}`);
+      setPendingPurchase(encodePending(slug, platform));
+      router.push(`/signup?redirect=${encodeURIComponent(pathname || "/marketplace")}`);
       return;
     }
-
     setLoading(true);
     try {
-      const url = await launchAgentCheckout(slug);
+      const url = await launchAgentCheckout(slug, platform);
       if (url === "UNAUTH") {
-        setPendingPurchase(slug);
-        router.push(`/signup?redirect=/agents-gpt`);
+        setPendingPurchase(encodePending(slug, platform));
+        router.push(`/signup?redirect=${encodeURIComponent(pathname || "/marketplace")}`);
         return;
       }
       if (url) {
@@ -77,7 +89,7 @@ export default function AgentBuyButton({ slug, priceLabel }: Props) {
           "Redirection vers le paiement…"
         ) : (
           <>
-            <Lock size={15} strokeWidth={2.3} /> Débloquer pour {priceLabel}
+            <Lock size={15} strokeWidth={2.3} /> {label ?? `Débloquer pour ${priceLabel}`}
           </>
         )}
       </button>
