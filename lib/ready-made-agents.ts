@@ -10,7 +10,7 @@
 export const AGENT_PRICE_CENTS = 490; // 4,90 €
 export const AGENT_PRICE_LABEL = "4,90 €";
 
-export type AgentType = "gpt" | "claude" | "both";
+export type AgentType = "gpt" | "claude" | "both" | "prompt" | "workflow";
 
 export type ReadyMadeAgent = {
   slug: string;

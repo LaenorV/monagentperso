@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import AgentGrid from "@/components/AgentGrid";
+import AgentMarketplace from "@/components/AgentMarketplace";
 
 export const metadata: Metadata = {
   title: "Agents Claude prêts à l'emploi — 4,90 € | MonAgentPerso",
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function AgentsClaudePage() {
-  return <AgentGrid platform="claude" />;
+  return <AgentMarketplace initialFilter="claude" />;
 }
