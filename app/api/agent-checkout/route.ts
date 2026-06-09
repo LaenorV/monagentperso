@@ -1,8 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { sanitizeRef } from "@/lib/affiliate";
 import { getAgent, AGENT_PRICE_CENTS } from "@/lib/ready-made-agents";
+import { validatePromo, markPromoUsed } from "@/lib/promo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,7 +13,12 @@ export const dynamic = "force-dynamic";
 // Séparé de /api/checkout (offre personnalisée 49,90 €) pour ne rien casser.
 export async function POST(req: NextRequest) {
   // 1. Body
-  let body: { agent_slug?: unknown; platform?: unknown; affiliate_ref?: unknown };
+  let body: {
+    agent_slug?: unknown;
+    platform?: unknown;
+    affiliate_ref?: unknown;
+    promo_code?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
@@ -69,6 +76,59 @@ export async function POST(req: NextRequest) {
     user_id: user.id,
   };
   if (affiliateRef) metadata.affiliate_ref = affiliateRef;
+
+  // 4bis. Code promo marketplace (optionnel) → 100 % = débloqué gratuitement, sans Stripe.
+  const promoCodeInput = typeof body.promo_code === "string" ? body.promo_code.trim() : "";
+  if (promoCodeInput) {
+    const admin = createAdminClient();
+    const v = await validatePromo(admin, {
+      code: promoCodeInput,
+      userId: user.id,
+      purchaseType: "marketplace",
+    });
+    if (!v.ok) {
+      return NextResponse.json({ error: "invalid_promo", message: v.message }, { status: 400 });
+    }
+    if (!v.isFree) {
+      // Les codes marketplace sont des offres 100 %. Pas de paiement partiel ici.
+      return NextResponse.json(
+        { error: "promo_not_free", message: "Ce code ne s'applique pas ici." },
+        { status: 400 },
+      );
+    }
+
+    const consumed = await markPromoUsed(admin, v.promo);
+    if (!consumed) {
+      return NextResponse.json(
+        { error: "promo_used", message: "Ce code a déjà été utilisé." },
+        { status: 409 },
+      );
+    }
+
+    const { error: freeErr } = await admin.from("ready_made_agent_purchases").insert({
+      user_id: user.id,
+      email: user.email ?? null,
+      agent_slug: agent.slug,
+      agent_name: agent.name,
+      agent_type: platform,
+      stripe_checkout_session_id: `free_${user.id}_${agent.slug}_${platform}`,
+      stripe_payment_intent_id: null,
+      amount_total: 0,
+      currency: "eur",
+      payment_status: "free_promo",
+      promo_code: v.promo.code,
+    });
+    if (freeErr && freeErr.code !== "23505") {
+      console.error("[/api/agent-checkout] free unlock insert failed:", freeErr);
+      return NextResponse.json({ error: "free_unlock_failed" }, { status: 500 });
+    }
+
+    console.log("[/api/agent-checkout] agent offert (code", v.promo.code, ") —", agent.slug);
+    return NextResponse.json({
+      free: true,
+      url: `${siteUrl}/payment/agent-success?free=1`,
+    });
+  }
 
   let session;
   try {

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X, LayoutDashboard, LogIn, LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "./AuthProvider";
 import { logoutAction } from "@/app/dashboard/actions";
+import WheelNavButton from "./wheel/WheelNavButton";
 
 export default function Nav() {
   const { user } = useAuth();
@@ -41,6 +42,7 @@ export default function Nav() {
           <Link href="/marketplace">Marketplace</Link>
           <Link href="/blog">Blog</Link>
           <Link href="/pricing">Pricing</Link>
+          <WheelNavButton />
         </div>
 
         <div className="nav-actions">
@@ -88,6 +90,7 @@ export default function Nav() {
             <Link href="/marketplace">Marketplace</Link>
             <Link href="/blog">Blog</Link>
             <Link href="/pricing">Pricing</Link>
+            <WheelNavButton mobile />
           </div>
           <div className="mobile-menu-section mobile-menu-actions">
             {user ? (

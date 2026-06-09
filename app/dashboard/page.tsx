@@ -9,6 +9,7 @@ import MyRequestCard from "./MyRequestCard";
 import Library, { type LibraryItem, type LibraryItemKind } from "./Library";
 import { getAgent } from "@/lib/ready-made-agents";
 import ResumePurchaseBanner from "@/components/ResumePurchaseBanner";
+import MyAdvantages, { type PromoRow } from "./MyAdvantages";
 
 export const dynamic = "force-dynamic";
 
@@ -71,6 +72,18 @@ export default async function DashboardPage() {
   const { data: agentPurchases } = await supabase
     .from("ready_made_agent_purchases")
     .select("agent_slug, agent_name, agent_type, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  // Roue & codes promo (RLS : siens uniquement).
+  const { data: spin } = await supabase
+    .from("wheel_spins")
+    .select("result_label")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  const { data: promoRows } = await supabase
+    .from("promo_codes")
+    .select("code, discount_type, discount_value, applies_to, status")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -162,6 +175,12 @@ export default async function DashboardPage() {
       ) : (
         <MyAgentCard hasPaidOrder={!!paidResponse} delivery={delivery} />
       )}
+
+      <MyAdvantages
+        promos={(promoRows ?? []) as PromoRow[]}
+        spun={!!spin}
+        spinLabel={spin?.result_label ?? null}
+      />
 
       <Library items={libraryItems} />
 

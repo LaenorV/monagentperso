@@ -116,6 +116,10 @@ export default function AgentMarketplace({
   const [platform, setPlatform] = useState<AgentPlatform>("gpt");
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState("");
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<{ code: string; final_amount: number; is_free: boolean } | null>(null);
+  const [promoMsg, setPromoMsg] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
 
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hoverCapable = useRef(false);
@@ -175,7 +179,37 @@ export default function AgentMarketplace({
     setError("");
     setConfirming(false);
     setPlatform(defaultPlatform(filter)); // version pré-sélectionnée selon l'onglet
+    setPromo(null);
+    setPromoInput("");
+    setPromoMsg("");
     setModalAgent(a);
+  }
+
+  async function applyPromo() {
+    if (!promoInput.trim()) return;
+    setPromoLoading(true);
+    setPromoMsg("");
+    try {
+      const res = await fetch("/api/promo/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoInput.trim(), purchase_type: "marketplace" }),
+      });
+      const data = await res.json();
+      if (data.valid && data.is_free) {
+        setPromo({ code: data.code, final_amount: data.final_amount, is_free: true });
+        setPromoMsg("");
+      } else if (data.valid && !data.is_free) {
+        setPromo(null);
+        setPromoMsg("Ce code ne s'applique pas à la marketplace.");
+      } else {
+        setPromo(null);
+        setPromoMsg(data.message || "Code invalide.");
+      }
+    } catch {
+      setPromoMsg("Erreur de vérification du code.");
+    }
+    setPromoLoading(false);
   }
 
   // Hover ~3s (desktop, utilisateur connecté) → ouvre la modale (jamais Stripe).
@@ -190,7 +224,7 @@ export default function AgentMarketplace({
     setConfirming(true);
     setError("");
     try {
-      const url = await launchAgentCheckout(modalAgent.slug, platform);
+      const url = await launchAgentCheckout(modalAgent.slug, platform, promo?.code);
       if (url === "UNAUTH") {
         setPendingPurchase(encodePending(modalAgent.slug, platform));
         router.push(`/signup?redirect=${encodeURIComponent(pathname || "/marketplace")}`);
@@ -381,7 +415,48 @@ export default function AgentMarketplace({
 
             <div className="agent-modal-price">
               <span>Prix unique</span>
-              <b>{modalAgent.priceLabel}</b>
+              {promo?.is_free ? (
+                <b>
+                  <s style={{ color: "var(--muted-2)", fontWeight: 600, marginRight: 8 }}>
+                    {modalAgent.priceLabel}
+                  </s>
+                  0,00 €
+                </b>
+              ) : (
+                <b>{modalAgent.priceLabel}</b>
+              )}
+            </div>
+
+            <div className="agent-modal-promo">
+              <div className="amk-promo-row">
+                <input
+                  type="text"
+                  placeholder="Code promo (optionnel)"
+                  value={promoInput}
+                  onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                  disabled={!!promo}
+                  aria-label="Code promo"
+                />
+                {promo ? (
+                  <button
+                    type="button"
+                    className="btn btn-light"
+                    onClick={() => {
+                      setPromo(null);
+                      setPromoInput("");
+                      setPromoMsg("");
+                    }}
+                  >
+                    Retirer
+                  </button>
+                ) : (
+                  <button type="button" className="btn btn-light" onClick={applyPromo} disabled={promoLoading}>
+                    {promoLoading ? "…" : "Appliquer"}
+                  </button>
+                )}
+              </div>
+              {promo?.is_free && <p className="amk-promo-ok">✓ Code appliqué — cet agent vous est offert.</p>}
+              {promoMsg && <p className="amk-promo-err">{promoMsg}</p>}
             </div>
 
             <p className="agent-modal-reassure">
@@ -416,7 +491,9 @@ export default function AgentMarketplace({
                 disabled={confirming}
               >
                 {confirming
-                  ? "Redirection vers le paiement…"
+                  ? "Traitement…"
+                  : promo?.is_free
+                  ? `Débloquer gratuitement · version ${platformLabel}`
                   : modalAgent.type === "both"
                   ? `Confirmer · version ${platformLabel} · ${modalAgent.priceLabel}`
                   : `Confirmer l'achat · ${modalAgent.priceLabel}`}

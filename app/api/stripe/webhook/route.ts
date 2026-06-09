@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sanitizeRef } from "@/lib/affiliate";
+import { markPromoUsedByCode } from "@/lib/promo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -265,6 +266,17 @@ export async function POST(req: NextRequest) {
     );
   } else {
     console.log("[/api/stripe/webhook] pending", pendingId, "→ status='paid'");
+  }
+
+  // 10. Code promo (réduction partielle, ex. -30 %) : consommé après paiement confirmé.
+  const promoCode = session.metadata?.promo_code;
+  if (promoCode) {
+    try {
+      await markPromoUsedByCode(admin, promoCode);
+      console.log("[/api/stripe/webhook] code promo consommé:", promoCode);
+    } catch (e) {
+      console.error("[/api/stripe/webhook] consommation code promo (non bloquant):", e);
+    }
   }
 
   return NextResponse.json({ received: true, processed: true });

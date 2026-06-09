@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { stripe } from "@/lib/stripe";
 import { sanitizeRef } from "@/lib/affiliate";
+import { validatePromo, markPromoUsed } from "@/lib/promo";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +18,12 @@ function devOrGeneric(devMsg: string, prodMsg: string) {
 
 export async function POST(req: NextRequest) {
   // 1. Parse body — accepte { questionnaire } (flux modal) ou { pendingId } (flux /payment)
-  let body: { questionnaire?: unknown; pendingId?: unknown; affiliate_ref?: unknown };
+  let body: {
+    questionnaire?: unknown;
+    pendingId?: unknown;
+    affiliate_ref?: unknown;
+    promo_code?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
@@ -161,19 +167,103 @@ export async function POST(req: NextRequest) {
     pending = { id: created.id };
   }
 
+  // 4bis. Code promo (optionnel) — toujours revalidé côté serveur.
+  const promoCodeInput = typeof body.promo_code === "string" ? body.promo_code.trim() : "";
+  let promoForStripe: string | null = null;
+  let reducedAmount: number | null = null;
+
+  if (promoCodeInput) {
+    const v = await validatePromo(admin, {
+      code: promoCodeInput,
+      userId: user.id,
+      purchaseType: "personalized_agent",
+    });
+    if (!v.ok) {
+      return NextResponse.json({ error: "invalid_promo", message: v.message }, { status: 400 });
+    }
+
+    if (v.isFree) {
+      // 100 % offert → AUCUN paiement Stripe. On crée la commande directement.
+      const consumed = await markPromoUsed(admin, v.promo);
+      if (!consumed) {
+        return NextResponse.json(
+          { error: "promo_used", message: "Ce code a déjà été utilisé." },
+          { status: 409 },
+        );
+      }
+
+      // Récupère le contenu du questionnaire (body en flux modal, sinon depuis le pending).
+      let qData: unknown = questionnaire;
+      if (!qData || typeof qData !== "object") {
+        const { data: pend } = await admin
+          .from("pending_questionnaires")
+          .select("questionnaire")
+          .eq("id", pending.id)
+          .single();
+        qData = pend?.questionnaire;
+      }
+
+      const { error: freeErr } = await admin.from("paid_questionnaire_responses").insert({
+        pending_questionnaire_id: pending.id,
+        user_id: user.id,
+        email: user.email,
+        stripe_checkout_session_id: `free_${pending.id}`,
+        stripe_payment_intent_id: null,
+        amount_total: 0,
+        currency: "eur",
+        payment_status: "free_promo",
+        questionnaire: qData,
+        affiliate_ref: affiliateRef || null,
+        promo_code: v.promo.code,
+      });
+      if (freeErr && freeErr.code !== "23505") {
+        console.error("[/api/checkout] free order insert failed:", freeErr);
+        return NextResponse.json({ error: "free_order_failed" }, { status: 500 });
+      }
+
+      await admin
+        .from("pending_questionnaires")
+        .update({ status: "paid", promo_code: v.promo.code })
+        .eq("id", pending.id);
+
+      console.log("[/api/checkout] commande offerte (code", v.promo.code, ") pour", user.id);
+      return NextResponse.json({ free: true, url: `${siteUrl}/dashboard?welcome=1&free=1` });
+    }
+
+    // Réduction partielle (ex. -30 %) → on paiera le montant réduit via Stripe.
+    promoForStripe = v.promo.code;
+    reducedAmount = v.finalAmount;
+  }
+
   // 5. Crée la Stripe Checkout Session
-  // metadata : on n'ajoute affiliate_ref que s'il existe (valeurs Stripe = strings).
+  // metadata : on n'ajoute affiliate_ref / promo_code que s'ils existent (valeurs Stripe = strings).
   const metadata: Record<string, string> = {
     pending_questionnaire_id: pending.id,
     user_id: user.id,
   };
   if (affiliateRef) metadata.affiliate_ref = affiliateRef;
+  if (promoForStripe) metadata.promo_code = promoForStripe;
+
+  // Montant réduit → price_data dynamique ; sinon, le price_id fixe habituel (inchangé).
+  const lineItems =
+    reducedAmount != null
+      ? [
+          {
+            quantity: 1,
+            price_data: {
+              currency: "eur" as const,
+              unit_amount: reducedAmount,
+              product_data: { name: "Agent IA personnalisé — offre avec code promo" },
+            },
+          },
+        ]
+      : [{ price: priceId, quantity: 1 }];
 
   let session;
   try {
     session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: lineItems,
       customer_email: user.email ?? undefined,
       metadata,
       success_url: `${siteUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,

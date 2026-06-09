@@ -9,6 +9,7 @@ import Modal from "@/components/Modal";
 import FlashAlert from "@/components/FlashAlert";
 import FaqChatbot from "@/components/FaqChatbot";
 import AffiliateTracker from "@/components/AffiliateTracker";
+import WheelModal from "@/components/wheel/WheelModal";
 import { ModalProvider } from "@/components/ModalContext";
 import { AuthProvider } from "@/components/AuthProvider";
 import { createClient } from "@/lib/supabase/server";
@@ -49,6 +50,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <main>{children}</main>
             <Footer />
             <Modal />
+            <WheelModal />
             <FlashAlert />
             <FaqChatbot />
           </ModalProvider>

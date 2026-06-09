@@ -21,10 +21,12 @@ import {
 import CtaButton from "@/components/CtaButton";
 import ComparisonVideos from "@/components/ComparisonVideos";
 import AuthReassure from "@/components/AuthReassure";
+import LandingWheelAuto from "@/components/wheel/LandingWheelAuto";
 
 export default function HomePage() {
   return (
     <>
+      <LandingWheelAuto />
       {/* === HERO === */}
       <div className="hero">
         <div className="container hero-grid">

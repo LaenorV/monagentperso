@@ -1764,3 +1764,76 @@ h1{margin:24px 0 0;max-width:780px;font-size:clamp(46px,5.8vw,76px);line-height:
   .agent-files{flex-direction:column}
   .agent-file-btn{width:100%;justify-content:center}
 }
+
+/* === ROUE PROMOTIONNELLE === */
+.wheel-nav-link{
+  background:transparent;border:0;cursor:pointer;font-family:inherit;
+  display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);
+  font-size:15px;font-weight:600;padding:6px 0;position:relative;
+}
+.wheel-nav-link:hover{color:var(--accent)}
+.wheel-nav-link svg{color:var(--accent)}
+.wheel-new-badge{
+  background:#d11;color:#fff;font-size:9px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.04em;padding:2px 6px;border-radius:999px;margin-left:1px;
+}
+.wheel-nav-link-mobile{width:100%;justify-content:flex-start;padding:14px 16px;border-radius:12px;font-size:16px}
+
+.wheel-modal{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;padding:18px}
+.wheel-backdrop{position:absolute;inset:0;background:rgba(26,22,18,.6);backdrop-filter:blur(4px);animation:amk-fade .2s ease}
+.wheel-card{
+  position:relative;width:min(460px,100%);max-height:94vh;overflow:auto;text-align:center;
+  background:var(--paper);border:1px solid var(--line);border-radius:26px;
+  padding:26px 26px 28px;box-shadow:var(--shadow-lg);animation:amk-pop .25s ease;
+}
+.wheel-close{position:absolute;top:14px;right:14px;background:transparent;border:0;cursor:pointer;color:var(--muted);width:34px;height:34px;border-radius:10px;display:grid;place-items:center}
+.wheel-close:hover{background:var(--bg-2);color:var(--ink)}
+.wheel-stage{position:relative;width:280px;height:280px;margin:6px auto 4px}
+.wheel-pointer{position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:13px solid transparent;border-right:13px solid transparent;border-top:20px solid var(--ink);z-index:5;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+.wheel{
+  position:relative;width:280px;height:280px;border-radius:50%;
+  border:8px solid var(--paper);box-shadow:0 0 0 3px var(--beige-deep),0 18px 40px rgba(26,22,18,.25);
+  will-change:transform;
+}
+.wheel-label{position:absolute;inset:0;display:flex;justify-content:center;align-items:flex-start;padding-top:18px;transform-origin:50% 50%;pointer-events:none}
+.wheel-label-txt{font-size:10.5px;font-weight:800;letter-spacing:-.01em;max-width:64px;text-align:center;line-height:1.05}
+.wheel-hub{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:62px;height:62px;border-radius:50%;background:var(--ink);color:var(--beige);display:grid;place-items:center;border:5px solid var(--paper);box-shadow:0 4px 12px rgba(0,0,0,.3);z-index:3}
+.wheel-panel{margin-top:14px}
+.wheel-title{font-size:24px;margin:6px 0 8px;letter-spacing:-.02em;line-height:1.15}
+.wheel-sub{color:var(--muted);font-size:15px;line-height:1.55;margin:0 auto;max-width:360px;font-family:'Inter',sans-serif}
+.wheel-actions{display:flex;flex-direction:column;gap:10px;margin-top:18px;align-items:stretch}
+.wheel-actions .btn{justify-content:center}
+.wheel-note{color:var(--muted-2);font-size:12.5px;margin-top:12px;line-height:1.5}
+.wheel-win-ico{color:var(--accent);display:flex;justify-content:center;margin-bottom:2px}
+.wheel-result-label{font-size:16px;color:var(--ink);font-weight:600;margin:4px auto 0;max-width:360px;line-height:1.45}
+.wheel-code{
+  display:inline-flex;align-items:center;gap:10px;margin:14px auto 0;cursor:pointer;
+  background:var(--ink);color:var(--paper);border:0;border-radius:12px;
+  padding:11px 18px;font-size:17px;font-weight:800;letter-spacing:.12em;font-family:'Consolas',monospace;
+}
+.wheel-code:hover{background:#000}
+.wheel-code svg{opacity:.8}
+
+/* Champs code promo */
+.q-promo{margin-top:16px;border-top:1px dashed var(--line-strong);padding-top:14px}
+.q-promo-row,.amk-promo-row{display:flex;gap:8px}
+.q-promo-row input,.amk-promo-row input{
+  flex:1;border:1px solid var(--line-strong);background:var(--paper-2);border-radius:11px;
+  padding:11px 14px;font-size:14px;outline:none;text-transform:uppercase;font-family:'Inter',sans-serif;
+}
+.q-promo-row input:focus,.amk-promo-row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.q-promo-ok,.amk-promo-ok{color:var(--success);font-size:13px;margin:8px 0 0;font-weight:600}
+.q-promo-err,.amk-promo-err{color:var(--danger);font-size:13px;margin:8px 0 0;font-weight:600}
+.agent-modal-promo{margin:14px 0}
+
+/* Mes avantages (dashboard) */
+.advantages-list{display:grid;gap:10px;margin-top:14px}
+.advantage-item{display:flex;align-items:center;gap:12px;border:1px solid var(--line);background:var(--paper-2);border-radius:14px;padding:14px}
+.advantage-ico{width:40px;height:40px;border-radius:11px;background:var(--accent-soft);color:var(--accent-2);display:grid;place-items:center;flex-shrink:0}
+.advantage-info{flex:1;min-width:0}
+.advantage-info b{font-size:14.5px;color:var(--ink)}
+.advantage-meta{display:flex;align-items:center;gap:10px;margin-top:5px;flex-wrap:wrap}
+.advantage-code{background:var(--ink);color:var(--paper);padding:3px 10px;border-radius:8px;font-size:13px;letter-spacing:.06em;font-family:'Consolas',monospace}
+.advantage-hint{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+.badge-unpaid{color:var(--warning);font-weight:700;font-size:12px}
+.badge-paid{color:var(--success);font-weight:700;font-size:12px}

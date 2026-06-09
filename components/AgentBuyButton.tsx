@@ -23,6 +23,7 @@ type Props = {
 export async function launchAgentCheckout(
   slug: string,
   platform: AgentPlatform,
+  promoCode?: string,
 ): Promise<string | null> {
   const res = await fetch("/api/agent-checkout", {
     method: "POST",
@@ -31,6 +32,7 @@ export async function launchAgentCheckout(
       agent_slug: slug,
       platform,
       affiliate_ref: getAffiliateRef() || undefined,
+      promo_code: promoCode || undefined,
     }),
   });
   if (res.status === 401) return "UNAUTH";

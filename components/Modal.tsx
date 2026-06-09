@@ -112,6 +112,10 @@ export default function Modal() {
   const [errorMsg, setErrorMsg] = useState<string>("");
   const [otherShown, setOtherShown] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [promoInput, setPromoInput] = useState<string>("");
+  const [promo, setPromo] = useState<{ code: string; final_amount: number; is_free: boolean } | null>(null);
+  const [promoMsg, setPromoMsg] = useState<string>("");
+  const [promoLoading, setPromoLoading] = useState<boolean>(false);
   const bodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -121,8 +125,38 @@ export default function Modal() {
       setAnswers({});
       setErrorMsg("");
       setSubmitting(false);
+      setPromoInput("");
+      setPromo(null);
+      setPromoMsg("");
     }
   }, [isOpen]);
+
+  async function applyPromo() {
+    if (!promoInput.trim()) return;
+    setPromoLoading(true);
+    setPromoMsg("");
+    try {
+      const res = await fetch("/api/promo/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoInput.trim(), purchase_type: "personalized_agent" }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setPromo({ code: data.code, final_amount: data.final_amount, is_free: data.is_free });
+      } else {
+        setPromo(null);
+        setPromoMsg(data.message || "Code invalide.");
+      }
+    } catch {
+      setPromoMsg("Erreur de vérification du code.");
+    }
+    setPromoLoading(false);
+  }
+
+  function euro(cents: number): string {
+    return (cents / 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+  }
 
   useEffect(() => {
     bodyRef.current?.scrollTo({ top: 0 });
@@ -261,6 +295,7 @@ export default function Modal() {
         body: JSON.stringify({
           questionnaire: payload,
           affiliate_ref: affiliateRef || undefined,
+          promo_code: promo?.code || undefined,
         }),
       });
       console.log("[checkout] HTTP", res.status);
@@ -428,6 +463,40 @@ export default function Modal() {
           <p style={{ color: "var(--muted)", fontSize: 13, marginTop: 14, lineHeight: 1.55 }}>
             ✉ Votre agent personnalisé sera préparé sous <strong style={{ color: "var(--ink)" }}>24h</strong>, envoyé à cet email et également accessible directement dans votre espace utilisateur. Vérifiez bien que l'adresse est correcte.
           </p>
+
+          {/* Code promo (gagné à la roue) */}
+          <div className="q-promo">
+            <div className="q-promo-row">
+              <input
+                type="text"
+                placeholder="Code promo (optionnel)"
+                value={promoInput}
+                onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                disabled={!!promo}
+                aria-label="Code promo"
+              />
+              {promo ? (
+                <button type="button" className="btn btn-light" onClick={() => { setPromo(null); setPromoInput(""); setPromoMsg(""); }}>
+                  Retirer
+                </button>
+              ) : (
+                <button type="button" className="btn btn-light" onClick={applyPromo} disabled={promoLoading}>
+                  {promoLoading ? "…" : "Appliquer"}
+                </button>
+              )}
+            </div>
+            {promo && (
+              <p className="q-promo-ok">
+                ✓ Code <strong>{promo.code}</strong> appliqué —{" "}
+                {promo.is_free ? (
+                  <>votre agent est <strong>offert</strong> (<s>49,90 €</s> → <strong>0,00 €</strong>).</>
+                ) : (
+                  <><s>49,90 €</s> → <strong>{euro(promo.final_amount)}</strong>.</>
+                )}
+              </p>
+            )}
+            {promoMsg && <p className="q-promo-err">{promoMsg}</p>}
+          </div>
         </div>
       );
     }
@@ -470,9 +539,13 @@ export default function Modal() {
             disabled={submitting}
           >
             {submitting
-              ? "Préparation du paiement…"
+              ? "Préparation…"
               : isLast
-              ? "Valider et payer ↗"
+              ? promo?.is_free
+                ? "Valider ma commande offerte ↗"
+                : promo
+                ? `Valider et payer ${euro(promo.final_amount)} ↗`
+                : "Valider et payer ↗"
               : "Continuer →"}
           </button>
         </div>
