@@ -6,20 +6,33 @@ import { X, Gift, Sparkles, Copy, Check, PartyPopper } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { WHEEL_EVENT, PENDING_WHEEL_KEY, WHEEL_SEEN_KEY } from "./openWheel";
 
-type ResultType = "none" | "perso_30" | "marketplace_free" | "perso_free";
-type SpinResult = { result_type: ResultType; result_label: string; promo_code: string | null };
+type ResultType =
+  | "lose"
+  | "personalized_discount_30"
+  | "marketplace_free"
+  | "personalized_free";
+type SpinResult = { result_type: string; result_label: string; promo_code: string | null };
 
+// Catégorie normalisée (tolère aussi les anciens types stockés en base).
+function cat(t: string): "lose" | "p30" | "mfree" | "pfree" {
+  if (t === "marketplace_free") return "mfree";
+  if (t === "personalized_discount_30" || t === "perso_30") return "p30";
+  if (t === "personalized_free" || t === "perso_free") return "pfree";
+  return "lose"; // "lose" ou ancien "none"
+}
+
+// 10 parts : "Dommage" majoritaire (6/10) pour refléter une perte plus fréquente.
 const SEGMENTS: { type: ResultType; short: string; color: string; ink?: boolean }[] = [
-  { type: "none", short: "Dommage", color: "#E7DCC8" },
-  { type: "perso_30", short: "-30%", color: "#B99666" },
-  { type: "none", short: "Dommage", color: "#D9C3A1" },
+  { type: "lose", short: "Dommage", color: "#E7DCC8" },
+  { type: "personalized_discount_30", short: "-30%", color: "#B99666" },
+  { type: "lose", short: "Dommage", color: "#D9C3A1" },
   { type: "marketplace_free", short: "Offert", color: "#4F7340", ink: true },
-  { type: "none", short: "Dommage", color: "#E7DCC8" },
-  { type: "perso_30", short: "-30%", color: "#B99666" },
-  { type: "none", short: "Dommage", color: "#D9C3A1" },
-  { type: "marketplace_free", short: "Offert", color: "#4F7340", ink: true },
-  { type: "none", short: "Dommage", color: "#E7DCC8" },
-  { type: "perso_free", short: "Agent offert", color: "#1A1612", ink: true },
+  { type: "lose", short: "Dommage", color: "#E7DCC8" },
+  { type: "personalized_discount_30", short: "-30%", color: "#B99666" },
+  { type: "lose", short: "Dommage", color: "#D9C3A1" },
+  { type: "lose", short: "Dommage", color: "#E7DCC8" },
+  { type: "personalized_free", short: "Agent offert", color: "#1A1612", ink: true },
+  { type: "lose", short: "Dommage", color: "#D9C3A1" },
 ];
 
 const CONIC = `conic-gradient(from -18deg, ${SEGMENTS.map(
@@ -161,7 +174,7 @@ export default function WheelModal() {
 
   if (!open) return null;
 
-  const won = result && result.result_type !== "none";
+  const won = result && cat(result.result_type) !== "lose";
 
   return (
     <div className="wheel-modal" role="dialog" aria-modal="true" aria-label="Roue promotionnelle">
@@ -228,16 +241,12 @@ export default function WheelModal() {
               <>
                 <div className="wheel-win-ico"><PartyPopper size={30} strokeWidth={1.9} /></div>
                 <h2 className="wheel-title">
-                  {result.result_type === "perso_free"
-                    ? "Incroyable !"
-                    : result.result_type === "perso_30"
-                    ? "Bravo !"
-                    : "Bravo !"}
+                  {cat(result.result_type) === "pfree" ? "Incroyable !" : "Bravo !"}
                 </h2>
                 <p className="wheel-result-label">
-                  {result.result_type === "perso_30" && "Vous avez gagné -30 % sur votre agent personnalisé."}
-                  {result.result_type === "marketplace_free" && "Vous avez gagné 1 achat marketplace offert."}
-                  {result.result_type === "perso_free" && "Votre agent personnalisé est offert."}
+                  {cat(result.result_type) === "p30" && "Vous avez gagné -30 % sur votre agent personnalisé."}
+                  {cat(result.result_type) === "mfree" && "Vous avez gagné un achat offert dans la marketplace."}
+                  {cat(result.result_type) === "pfree" && "Votre agent personnalisé est offert."}
                 </p>
                 {result.promo_code && (
                   <button type="button" className="wheel-code" onClick={copyCode} title="Copier le code">
@@ -246,12 +255,12 @@ export default function WheelModal() {
                   </button>
                 )}
                 <p className="wheel-note">
-                  {result.result_type === "marketplace_free"
+                  {cat(result.result_type) === "mfree"
                     ? "À saisir dans la marketplace, au moment de débloquer un agent."
                     : "À saisir après le questionnaire, avant le paiement. Retrouvez-le aussi dans « Mes avantages »."}
                 </p>
                 <div className="wheel-actions">
-                  {result.result_type === "marketplace_free" ? (
+                  {cat(result.result_type) === "mfree" ? (
                     <a href="/agents-gpt" className="btn btn-primary btn-xl" onClick={close}>
                       Aller à la marketplace →
                     </a>
@@ -267,17 +276,18 @@ export default function WheelModal() {
               </>
             ) : (
               <>
-                <h2 className="wheel-title">Dommage, pas de gain cette fois.</h2>
+                <h2 className="wheel-title">Mince, une prochaine fois peut-être !</h2>
                 <p className="wheel-sub">
-                  Vous pouvez quand même découvrir nos agents prêts à l'emploi dans la marketplace.
+                  En attendant, vous pouvez réclamer votre agent personnalisé ou faire un tour sur la
+                  marketplace.
                 </p>
                 <div className="wheel-actions">
-                  <a href="/agents-gpt" className="btn btn-primary btn-xl" onClick={close}>
-                    Voir la marketplace →
+                  <a href="/" className="btn btn-primary btn-xl" onClick={close}>
+                    Réclamer mon agent →
                   </a>
-                  <button type="button" className="btn btn-light" onClick={close}>
-                    Fermer
-                  </button>
+                  <a href="/agents-gpt" className="btn btn-light" onClick={close}>
+                    Voir la marketplace
+                  </a>
                 </div>
               </>
             )}

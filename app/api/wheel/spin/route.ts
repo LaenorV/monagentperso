@@ -7,33 +7,35 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type SpinDef = {
-  result_type: "none" | "perso_30" | "marketplace_free" | "perso_free";
+  result_type: "lose" | "personalized_discount_30" | "marketplace_free" | "personalized_free";
   result_label: string;
   win: boolean;
   promo?: { discount_type: string; discount_value: number; applies_to: string };
 };
 
-// Résultat décidé CÔTÉ SERVEUR selon les probabilités demandées.
+// Résultat décidé CÔTÉ SERVEUR — tirage pondéré sur 1000 points (pas de décimales) :
+//   Dommage 600/1000 (60 %) · -30 % 250/1000 (25 %)
+//   Marketplace offert 125/1000 (12,5 %) · Agent personnalisé offert 25/1000 (2,5 %)
 function rollResult(): SpinDef {
-  const r = Math.random();
-  if (r < 0.5) return { result_type: "none", result_label: "Dommage, pas de gain cette fois.", win: false };
-  if (r < 0.7)
+  const r = Math.floor(Math.random() * 1000); // 0..999
+  if (r < 600) return { result_type: "lose", result_label: "Dommage", win: false };
+  if (r < 850)
     return {
-      result_type: "perso_30",
-      result_label: "-30 % sur votre agent personnalisé",
+      result_type: "personalized_discount_30",
+      result_label: "-30% offert sur un agent personnalisé",
       win: true,
       promo: { discount_type: "percentage", discount_value: 30, applies_to: "personalized_agent" },
     };
-  if (r < 0.9)
+  if (r < 975)
     return {
       result_type: "marketplace_free",
-      result_label: "1 achat marketplace offert",
+      result_label: "Un achat offert dans la marketplace",
       win: true,
       promo: { discount_type: "percentage", discount_value: 100, applies_to: "marketplace" },
     };
   return {
-    result_type: "perso_free",
-    result_label: "Agent personnalisé offert",
+    result_type: "personalized_free",
+    result_label: "Un agent personnalisé gratuitement",
     win: true,
     promo: { discount_type: "percentage", discount_value: 100, applies_to: "personalized_agent" },
   };
