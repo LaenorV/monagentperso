@@ -192,8 +192,7 @@ export default function Modal() {
             et vos souhaits, afin de vous créer un assistant <strong>entièrement personnalisé</strong>.
             N'hésitez pas à être précis sur vos demandes.
           </p>
-          <div className="intro-features">
-            <div className="intro-feature"><b>26</b>questions guidées</div>
+          <div className="intro-features intro-features-2">
             <div className="intro-feature"><b>~3 min</b>de votre temps</div>
             <div className="intro-feature"><b>24h</b>de livraison</div>
           </div>
