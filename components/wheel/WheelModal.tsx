@@ -43,32 +43,47 @@ export default function WheelModal() {
   const { user } = useAuth();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [phase, setPhase] = useState<"intro" | "spinning" | "result">("intro");
+  const [phase, setPhase] = useState<"loading" | "intro" | "spinning" | "result">("loading");
   const [result, setResult] = useState<SpinResult | null>(null);
+  const [hasSpun, setHasSpun] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const spinTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Source de vérité = Supabase (via /api/wheel/status). Le localStorage ne sert
+  // jamais à autoriser un tirage.
   const openModal = useCallback(async () => {
     setOpen(true);
     setCopied(false);
-    // Utilisateur connecté : a-t-il déjà tourné ?
-    if (user) {
-      try {
-        const res = await fetch("/api/wheel/spin", { method: "GET" });
-        const data = await res.json();
-        if (data.spun && data.result) {
-          setResult(data.result);
-          setPhase("result");
-          return;
-        }
-      } catch {
-        /* on tombe sur l'intro */
-      }
+    setErrorMsg("");
+    if (!user) {
+      setHasSpun(false);
+      setResult(null);
+      setPhase("intro");
+      return;
     }
-    setPhase("intro");
-    setResult(null);
+    setPhase("loading");
+    try {
+      const res = await fetch("/api/wheel/status", { method: "GET" });
+      const data = await res.json();
+      if (data.hasSpun && data.spin) {
+        setResult(data.spin);
+        setHasSpun(true);
+        setPhase("result");
+        return;
+      }
+      setHasSpun(false);
+      setResult(null);
+      setPhase("intro");
+    } catch {
+      // En cas d'échec réseau, on n'autorise pas un tirage hasardeux : on tente
+      // l'intro mais le POST reste l'arbitre final (idempotent côté serveur).
+      setHasSpun(false);
+      setResult(null);
+      setPhase("intro");
+    }
   }, [user]);
 
   // Ouverture via événement global (nav / landing).
@@ -119,22 +134,53 @@ export default function WheelModal() {
       router.push("/signup?redirect=/");
       return;
     }
-    if (busy) return;
+    // Anti double-tirage : on bloque si déjà tourné ou requête en cours.
+    if (busy || hasSpun) return;
     setBusy(true);
+    setErrorMsg("");
     try {
       const res = await fetch("/api/wheel/spin", { method: "POST" });
-      const data = await res.json();
       if (res.status === 401) {
+        try {
+          localStorage.setItem(PENDING_WHEEL_KEY, "1");
+        } catch {
+          /* ignore */
+        }
+        close();
         router.push("/signup?redirect=/");
         return;
       }
+      const data = await res.json().catch(() => ({}));
+
+      // Échec serveur → on NE révèle AUCUN résultat (pas de faux tirage).
+      // On resynchronise le statut au cas où une ligne existe déjà.
+      if (!res.ok) {
+        setBusy(false);
+        try {
+          const s = await fetch("/api/wheel/status");
+          const sd = await s.json();
+          if (sd.hasSpun && sd.spin) {
+            setResult(sd.spin);
+            setHasSpun(true);
+            setPhase("result");
+            return;
+          }
+        } catch {
+          /* ignore */
+        }
+        setErrorMsg("Le tirage est momentanément indisponible. Réessayez plus tard.");
+        return;
+      }
+
       const r: SpinResult = {
         result_type: data.result_type,
         result_label: data.result_label,
         promo_code: data.promo_code ?? null,
       };
+      // Dans tous les cas (nouveau tirage OU déjà tourné), l'utilisateur a consommé son tour.
+      setHasSpun(true);
 
-      // Déjà tourné → on révèle directement.
+      // Déjà tourné (course / refresh) → on révèle le résultat existant, sans animation.
       if (data.alreadySpun) {
         setResult(r);
         setPhase("result");
@@ -142,7 +188,7 @@ export default function WheelModal() {
         return;
       }
 
-      // Animation vers le segment correspondant au résultat serveur.
+      // Nouveau tirage confirmé par le serveur → animation vers le bon segment.
       const candidates = SEGMENTS.map((s, i) => i).filter((i) => SEGMENTS[i].type === r.result_type);
       const target = candidates[Math.floor(Math.random() * candidates.length)] ?? 0;
       const jitter = Math.floor(Math.random() * 26) - 13;
@@ -158,6 +204,7 @@ export default function WheelModal() {
       }, 4400);
     } catch {
       setBusy(false);
+      setErrorMsg("Erreur réseau — réessayez.");
     }
   }
 
@@ -208,6 +255,13 @@ export default function WheelModal() {
           </div>
         </div>
 
+        {/* LOADING — on attend la vérification serveur avant tout */}
+        {phase === "loading" && (
+          <div className="wheel-panel">
+            <p className="wheel-sub">Chargement…</p>
+          </div>
+        )}
+
         {/* INTRO */}
         {phase === "intro" && (
           <div className="wheel-panel">
@@ -215,15 +269,22 @@ export default function WheelModal() {
             <p className="wheel-sub">
               Tournez la roue et débloquez peut-être une réduction… ou un agent offert.
             </p>
+            {errorMsg && <p className="wheel-error">⚠ {errorMsg}</p>}
             <div className="wheel-actions">
-              <button type="button" className="btn btn-primary btn-xl" onClick={spin} disabled={busy}>
-                <Sparkles size={18} strokeWidth={2.2} /> Tourner la roue
+              <button
+                type="button"
+                className="btn btn-primary btn-xl"
+                onClick={spin}
+                disabled={busy || hasSpun}
+              >
+                <Sparkles size={18} strokeWidth={2.2} />{" "}
+                {busy ? "Tirage en cours…" : hasSpun ? "Vous avez déjà utilisé votre tour" : "Tourner la roue"}
               </button>
               <button type="button" className="btn btn-light" onClick={close}>
                 Plus tard
               </button>
             </div>
-            <p className="wheel-note">Un seul tirage par compte.</p>
+            <p className="wheel-note">Un seul tirage par compte, à vie.</p>
           </div>
         )}
 
@@ -291,6 +352,7 @@ export default function WheelModal() {
                 </div>
               </>
             )}
+            <p className="wheel-note">Vous avez utilisé votre unique tirage.</p>
           </div>
         )}
       </div>

@@ -1804,6 +1804,7 @@ h1{margin:24px 0 0;max-width:780px;font-size:clamp(46px,5.8vw,76px);line-height:
 .wheel-actions{display:flex;flex-direction:column;gap:10px;margin-top:18px;align-items:stretch}
 .wheel-actions .btn{justify-content:center}
 .wheel-note{color:var(--muted-2);font-size:12.5px;margin-top:12px;line-height:1.5}
+.wheel-error{color:var(--danger);font-size:13px;font-weight:600;margin:10px 0 0}
 .wheel-win-ico{color:var(--accent);display:flex;justify-content:center;margin-bottom:2px}
 .wheel-result-label{font-size:16px;color:var(--ink);font-weight:600;margin:4px auto 0;max-width:360px;line-height:1.45}
 .wheel-code{
