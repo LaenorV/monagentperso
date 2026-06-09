@@ -25,6 +25,22 @@ const articles = [
       "Emails, comptes rendus, posts, réponses clients, devis ou synthèses : les meilleurs premiers usages sont souvent les plus répétitifs.",
     readTime: "5 min de lecture",
   },
+  {
+    slug: "prompt-methode-6-blocs",
+    icon: "◆",
+    title: "Écrire un prompt qui marche : la méthode des 6 blocs",
+    excerpt:
+      "Rôle, contexte, tâche, format, contraintes, exemples : la structure exacte d'un prompt efficace, plus les 3 techniques (few-shot, raisonnement, décomposition) et un avant/après concret.",
+    readTime: "7 min de lecture",
+  },
+  {
+    slug: "humaniser-texte-ia",
+    icon: "◐",
+    title: "Faire écrire l'IA sans que ça se voie",
+    excerpt:
+      "Perplexité, burstiness, tics de langage : ce que détectent vraiment les détecteurs d'IA, et 7 réglages concrets pour un texte naturel — sans changer le sens.",
+    readTime: "7 min de lecture",
+  },
 ];
 
 export default function BlogPage() {
