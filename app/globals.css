@@ -1827,20 +1827,33 @@ h1{margin:24px 0 0;max-width:780px;font-size:clamp(46px,5.8vw,76px);line-height:
   .ig-banner-btn{width:100%;justify-content:center}
 }
 
-/* === Conversion marketplace : bandeau promesse (A) === */
+/* === Conversion marketplace : bandeau promesse (A) — compact === */
 .mk-promise{
-  display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
-  margin:18px 0 26px;padding:24px 28px;border-radius:20px;
-  background:linear-gradient(100deg,var(--ink) 0%,#2a2118 100%);color:var(--paper);
-  box-shadow:var(--shadow-lg);position:relative;overflow:hidden;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  margin:12px 0 14px;padding:12px 16px;border-radius:14px;
+  background:linear-gradient(125deg,var(--paper-2) 0%,#F6ECD8 55%,#EFE0C4 100%);
+  border:1px solid var(--beige-deep);box-shadow:var(--shadow-sm);
+  position:relative;overflow:hidden;
 }
-.mk-promise::before{content:"";position:absolute;inset:0 0 auto auto;width:50%;height:100%;
-  background:radial-gradient(ellipse 60% 80% at 100% 50%,rgba(185,150,102,.22),transparent 70%);pointer-events:none}
-.mk-promise-text{flex:1;min-width:260px;position:relative}
-.mk-promise-eyebrow{font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--beige-deep)}
-.mk-promise-text h2{margin:6px 0 6px;font-size:clamp(22px,2.6vw,30px);color:var(--paper);letter-spacing:-.02em;line-height:1.15}
-.mk-promise-text p{margin:0;color:rgba(255,255,255,.85);font-size:14.5px;line-height:1.55;max-width:560px;font-family:'Inter',sans-serif}
-.mk-promise-btn{flex-shrink:0;position:relative}
+.mk-promise::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;
+  background:linear-gradient(180deg,var(--accent-3),var(--accent),var(--beige-deep))}
+.mk-promise-ico{flex-shrink:0;width:42px;height:42px;border-radius:11px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));color:var(--paper);
+  display:grid;place-items:center;box-shadow:0 6px 14px rgba(139,107,62,.3)}
+.mk-promise-line{flex:1;min-width:220px;margin:0;font-size:14px;line-height:1.45;color:var(--ink-2);font-family:'Inter',sans-serif}
+.mk-promise-line strong{color:var(--ink);font-weight:800}
+.mk-promise-btn{flex-shrink:0;padding:10px 18px;font-size:14px}
+@media(max-width:700px){.mk-promise{padding:14px 16px}.mk-promise-btn{width:100%;justify-content:center}}
+
+/* === Resserrage du haut de la marketplace (grille visible plus tôt) === */
+.mk-hero{padding:32px 0 28px!important;margin-bottom:16px!important}
+.mk-hero-sub{margin-top:12px!important;font-size:15.5px!important}
+.mk-hero-stats{margin-top:16px!important}
+.ig-banner{margin:14px 0 0!important;padding:13px 18px!important}
+.mk-filters{margin:8px 0 14px!important}
+.mk-cats{margin-bottom:14px!important}
+.mk-resultline{margin-bottom:12px!important}
+@media(max-width:760px){.mk-hero{padding:22px 0 18px!important}}
 
 /* === Carte promo dans la grille (B) === */
 .mk-promo-card{

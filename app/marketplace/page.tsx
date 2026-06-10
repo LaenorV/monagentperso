@@ -203,18 +203,15 @@ export default async function MarketplacePage({
         </div>
       </div>
 
-      {/* === BANDEAU PROMESSE (A) — aucune mention de prix === */}
+      {/* === BANDEAU PROMESSE (A) — version compacte, aucune mention de prix === */}
       <div className="container">
         <div className="mk-promise">
-          <div className="mk-promise-text">
-            <span className="mk-promise-eyebrow">Vous cherchez l'IA qu'il vous faut ?</span>
-            <h2>Ne cherchez plus : on vous la crée sur‑mesure.</h2>
-            <p>
-              Parcourez des milliers d'outils ci‑dessous… mais si aucun ne colle parfaitement à votre
-              métier, on conçoit pour vous un agent IA personnalisé, livré sous 24h.
-            </p>
-          </div>
-          <CtaButton className="btn btn-primary btn-xl mk-promise-btn">Réclamer mon agent →</CtaButton>
+          <div className="mk-promise-ico"><Sparkles size={20} strokeWidth={2.2} /></div>
+          <p className="mk-promise-line">
+            <strong>Aucun outil ne colle parfaitement à votre métier ?</strong> On vous crée un agent
+            IA sur‑mesure, livré sous 24h.
+          </p>
+          <CtaButton className="btn btn-primary mk-promise-btn">Réclamer mon agent →</CtaButton>
         </div>
       </div>
 
