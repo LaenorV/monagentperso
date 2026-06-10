@@ -41,6 +41,22 @@ const articles = [
       "Perplexité, burstiness, tics de langage : ce que détectent vraiment les détecteurs d'IA, et 7 réglages concrets pour un texte naturel — sans changer le sens.",
     readTime: "7 min de lecture",
   },
+  {
+    slug: "cv-passer-les-ats",
+    icon: "▤",
+    title: "Pourquoi votre CV n'arrive jamais au recruteur",
+    excerpt:
+      "8 CV sur 10 sont filtrés par un logiciel avant tout regard humain. Comment fonctionnent les ATS, le formatage qui passe, les mots-clés qui comptent et les puces qui décrochent un entretien.",
+    readTime: "7 min de lecture",
+  },
+  {
+    slug: "reviser-active-recall",
+    icon: "◇",
+    title: "Réviser deux fois moins, retenir deux fois plus",
+    excerpt:
+      "Relire ses cours ne marche pas. L'auto-test et la répétition espacée, prouvés par la recherche : comment les appliquer, fabriquer de bonnes flashcards, et un plan sur 2 semaines.",
+    readTime: "6 min de lecture",
+  },
 ];
 
 export default function BlogPage() {

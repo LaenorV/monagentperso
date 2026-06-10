@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export type SignupState = {
   error?: string;
@@ -25,6 +26,13 @@ export async function signupAction(
   const next = String(formData.get("next") ?? "");
   // Reprise d'un parcours (ex. achat agent) : on revient sur la page d'origine.
   const redirectTo = String(formData.get("redirect") ?? "");
+  // Identifiant Instagram (optionnel) : on retire le @ et on ne garde que les
+  // caractères valides d'un handle (lettres, chiffres, point, underscore).
+  const instagram = String(formData.get("instagram") ?? "")
+    .trim()
+    .replace(/^@+/, "")
+    .replace(/[^A-Za-z0-9._]/g, "")
+    .slice(0, 30);
 
   if (!email || !password) {
     return { error: "Email et mot de passe requis." };
@@ -50,11 +58,25 @@ export async function signupAction(
       // emailRedirectTo conservé pour les cas où Confirm email serait réactivé.
       // Aucun impact quand la confirmation est désactivée.
       emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(destination)}`,
+      // Stocke l'Instagram en métadonnée auth (toujours, même sans table profiles).
+      data: instagram ? { instagram } : undefined,
     },
   });
 
   if (error) {
     return { error: error.message };
+  }
+
+  // Enregistre/recense le profil (colonne instagram). Non bloquant.
+  if (data.user) {
+    try {
+      const admin = createAdminClient();
+      await admin
+        .from("profiles")
+        .upsert({ id: data.user.id, email, instagram: instagram || null }, { onConflict: "id" });
+    } catch (e) {
+      console.error("[signup] upsert profile (non bloquant):", e);
+    }
   }
 
   // Cas standard (Confirm email désactivé) : session immédiate → /dashboard.

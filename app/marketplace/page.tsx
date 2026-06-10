@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Fragment } from "react";
 import Link from "next/link";
+import CtaButton from "@/components/CtaButton";
 import {
   Store,
   ExternalLink,
@@ -11,6 +13,31 @@ import {
   Workflow,
   Sparkles,
 } from "lucide-react";
+
+// Icône Instagram en SVG inline (l'icône de marque n'est pas exportée par lucide).
+function IgIcon({ size = 24 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
+
+// Carte promo insérée dans la grille (proposition B) — aucune mention de prix.
+function PromoCard() {
+  return (
+    <article className="mk-promo-card">
+      <div className="mk-promo-ico"><Sparkles size={22} strokeWidth={2} /></div>
+      <h3>Aucun outil ne fait <em>exactement</em> ce qu'il vous faut ?</h3>
+      <p>On vous crée un agent IA sur‑mesure pour votre métier, livré sous 24h.</p>
+      <CtaButton className="btn btn-primary mk-promo-btn">Réclamer mon agent →</CtaButton>
+      <Link href="/agents-gpt" className="mk-promo-link">ou voir les agents prêts à l'emploi</Link>
+    </article>
+  );
+}
 import {
   filterTools,
   CATEGORIES,
@@ -123,6 +150,28 @@ export default async function MarketplacePage({
 
   return (
     <div className="mk">
+      {/* === BANNIÈRE INSTAGRAM (bien visible, en haut) === */}
+      <div className="container">
+        <a
+          href="https://www.instagram.com/evolify_ai/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="ig-banner"
+        >
+          <div className="ig-banner-ico"><IgIcon size={28} /></div>
+          <div className="ig-banner-text">
+            <b>L'actualité IA, c'est par ici 👉 @evolify_ai</b>
+            <span>
+              Prompts prêts à l'emploi, agents IA, outils IA méconnus et nouveautés : suivez-nous sur
+              Instagram pour ne rien rater.
+            </span>
+          </div>
+          <span className="ig-banner-btn">
+            <IgIcon size={16} /> Suivre sur Instagram
+          </span>
+        </a>
+      </div>
+
       {/* === HERO === */}
       <div className="mk-hero">
         <div className="container mk-hero-grid">
@@ -151,6 +200,21 @@ export default async function MarketplacePage({
           <div className="mk-hero-icon" aria-hidden="true">
             <Store size={96} strokeWidth={1.4} />
           </div>
+        </div>
+      </div>
+
+      {/* === BANDEAU PROMESSE (A) — aucune mention de prix === */}
+      <div className="container">
+        <div className="mk-promise">
+          <div className="mk-promise-text">
+            <span className="mk-promise-eyebrow">Vous cherchez l'IA qu'il vous faut ?</span>
+            <h2>Ne cherchez plus : on vous la crée sur‑mesure.</h2>
+            <p>
+              Parcourez des milliers d'outils ci‑dessous… mais si aucun ne colle parfaitement à votre
+              métier, on conçoit pour vous un agent IA personnalisé, livré sous 24h.
+            </p>
+          </div>
+          <CtaButton className="btn btn-primary btn-xl mk-promise-btn">Réclamer mon agent →</CtaButton>
         </div>
       </div>
 
@@ -228,8 +292,11 @@ export default async function MarketplacePage({
           </div>
         ) : (
           <div className="mk-grid">
-            {items.map((tool) => (
-              <ToolCard key={tool.slug || tool.name} tool={tool} />
+            {items.map((tool, i) => (
+              <Fragment key={tool.slug || tool.name}>
+                <ToolCard tool={tool} />
+                {(i + 1) % 8 === 0 && i < items.length - 1 && <PromoCard key={`promo-${i}`} />}
+              </Fragment>
             ))}
           </div>
         )}
@@ -266,6 +333,14 @@ export default async function MarketplacePage({
             )}
           </div>
         )}
+      </div>
+
+      {/* === BARRE CTA COLLANTE (C) — aucune mention de prix === */}
+      <div className="mk-sticky">
+        <span className="mk-sticky-text">
+          🚀 Votre agent IA métier <strong>sur‑mesure</strong>, livré sous 24h.
+        </span>
+        <CtaButton className="btn btn-primary mk-sticky-btn">Réclamer mon agent →</CtaButton>
       </div>
     </div>
   );

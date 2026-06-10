@@ -63,6 +63,10 @@ function SignupForm() {
               <label htmlFor="passwordConfirm">Confirmation du mot de passe</label>
               <input id="passwordConfirm" name="passwordConfirm" type="password" required autoComplete="new-password" minLength={8} />
             </div>
+            <div>
+              <label htmlFor="instagram">Identifiant Instagram <span style={{ color: "var(--muted-2)", fontWeight: 400 }}>(optionnel)</span></label>
+              <input id="instagram" name="instagram" type="text" autoComplete="off" placeholder="@votre_pseudo" />
+            </div>
 
             {state.error && <div className="auth-error">{state.error}</div>}
 
