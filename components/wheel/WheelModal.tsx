@@ -46,6 +46,9 @@ export default function WheelModal() {
   const [phase, setPhase] = useState<"loading" | "intro" | "spinning" | "result">("loading");
   const [result, setResult] = useState<SpinResult | null>(null);
   const [hasSpun, setHasSpun] = useState(false);
+  // true quand on rouvre la roue alors que le tirage est déjà consommé
+  // (affiche un avertissement rouge plutôt que de re-proposer un tour).
+  const [reopened, setReopened] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -58,19 +61,19 @@ export default function WheelModal() {
     setOpen(true);
     setCopied(false);
     setErrorMsg("");
-    if (!user) {
-      setHasSpun(false);
-      setResult(null);
-      setPhase("intro");
-      return;
-    }
+    setReopened(false);
+    // On interroge TOUJOURS le serveur (Supabase via cookies) : c'est la seule
+    // source fiable, et ça évite la course où le `user` client n'est pas encore
+    // chargé à l'ouverture (sinon on re-proposait la roue à tort).
     setPhase("loading");
     try {
       const res = await fetch("/api/wheel/status", { method: "GET" });
       const data = await res.json();
+      // Déjà tourné → on rouvre sur le résultat, avec avertissement rouge.
       if (data.hasSpun && data.spin) {
         setResult(data.spin);
         setHasSpun(true);
+        setReopened(true);
         setPhase("result");
         return;
       }
@@ -84,7 +87,7 @@ export default function WheelModal() {
       setResult(null);
       setPhase("intro");
     }
-  }, [user]);
+  }, []);
 
   // Ouverture via événement global (nav / landing).
   useEffect(() => {
@@ -183,6 +186,7 @@ export default function WheelModal() {
       // Déjà tourné (course / refresh) → on révèle le résultat existant, sans animation.
       if (data.alreadySpun) {
         setResult(r);
+        setReopened(true);
         setPhase("result");
         setBusy(false);
         return;
@@ -298,6 +302,12 @@ export default function WheelModal() {
         {/* RESULT */}
         {phase === "result" && result && (
           <div className="wheel-panel">
+            {reopened && (
+              <p className="wheel-error">
+                ⚠ Vous avez déjà tourné la roue — vous ne pouvez pas la retourner.
+                Voici le résultat de votre unique tirage.
+              </p>
+            )}
             {won ? (
               <>
                 <div className="wheel-win-ico"><PartyPopper size={30} strokeWidth={1.9} /></div>

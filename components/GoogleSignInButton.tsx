@@ -1,49 +1,41 @@
 "use client";
 
-import { useFormStatus } from "react-dom";
-import { signInWithGoogle } from "@/app/auth/actions";
-
-function GoogleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-      <path
-        fill="#4285F4"
-        d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"
-      />
-      <path
-        fill="#34A853"
-        d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33z"
-      />
-      <path
-        fill="#EA4335"
-        d="M9 3.58c1.32 0 2.5.46 3.44 1.35l2.58-2.58C13.47.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"
-      />
-    </svg>
-  );
-}
-
-function SubmitButton({ label }: { label: string }) {
-  const { pending } = useFormStatus();
-  return (
-    <button
-      type="submit"
-      className="btn btn-google"
-      disabled={pending}
-      style={{ width: "100%", justifyContent: "center" }}
-    >
-      <GoogleIcon /> {pending ? "Redirection…" : label}
-    </button>
-  );
-}
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 /**
- * Bouton "Continuer avec Google" — utilisé sur /login et /signup.
- * `next` est propagé pour reprendre le flux questionnaire après connexion.
+ * Connexion Google via Google Identity Services (GIS) + Supabase
+ * `signInWithIdToken`. On n'utilise plus le flow OAuth redirect
+ * (supabase.auth.signInWithOAuth) : l'écran Google n'affiche donc plus
+ * l'URL technique *.supabase.co, mais bien notre origine (monagentperso.pro).
+ *
+ * Pré-requis :
+ *  - NEXT_PUBLIC_GOOGLE_CLIENT_ID = le « Web client ID » OAuth de Google Cloud.
+ *  - Ce même Client ID doit être listé dans Supabase → Auth → Google
+ *    (provider activé, « Authorized Client IDs »).
+ *  - https://www.monagentperso.pro (+ http://localhost:3000 en dev) doivent
+ *    figurer dans « Authorized JavaScript origins » côté Google Cloud.
  */
+
+const GIS_SRC = "https://accounts.google.com/gsi/client";
+const CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+type CredentialResponse = { credential?: string };
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: Record<string, unknown>) => void;
+          renderButton: (parent: HTMLElement, options: Record<string, unknown>) => void;
+        };
+      };
+    };
+  }
+}
+
 export default function GoogleSignInButton({
   next = "",
   label = "Continuer avec Google",
@@ -51,10 +43,129 @@ export default function GoogleSignInButton({
   next?: string;
   label?: string;
 }) {
+  const router = useRouter();
+  const btnRef = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const destination =
+    next === "questionnaire" ? "/dashboard?openQuestionnaire=1" : "/dashboard";
+
+  // Texte localisé du bouton Google selon le contexte (connexion / inscription).
+  const gisText = /inscr/i.test(label) ? "signup_with" : "signin_with";
+
+  // Réception du credential (ID token JWT) renvoyé par Google.
+  const handleCredential = useCallback(
+    async (response: CredentialResponse) => {
+      if (!response?.credential) {
+        setError("La connexion Google a échoué. Réessayez ou utilisez votre email.");
+        return;
+      }
+      setBusy(true);
+      setError("");
+      try {
+        const supabase = createClient();
+        const { data, error: signInError } = await supabase.auth.signInWithIdToken({
+          provider: "google",
+          token: response.credential,
+        });
+        if (signInError || !data?.session) {
+          setBusy(false);
+          setError("La connexion Google a échoué. Réessayez ou utilisez votre email.");
+          return;
+        }
+        // Session Supabase OK → on quitte immédiatement la page d'auth pour
+        // l'espace utilisateur (aucun message « session expirée » ne subsiste).
+        router.push(destination);
+        router.refresh();
+      } catch {
+        setBusy(false);
+        setError("La connexion Google a échoué. Réessayez ou utilisez votre email.");
+      }
+    },
+    [destination, router],
+  );
+
+  useEffect(() => {
+    if (!CLIENT_ID) {
+      setError("Connexion Google momentanément indisponible.");
+      return;
+    }
+    let cancelled = false;
+
+    function renderGoogleButton() {
+      if (cancelled || !window.google || !btnRef.current) return;
+      window.google.accounts.id.initialize({
+        client_id: CLIENT_ID,
+        callback: handleCredential,
+        ux_mode: "popup",
+        auto_select: false,
+        // Force le sélecteur de comptes plutôt qu'une reconnexion silencieuse.
+        itp_support: true,
+      });
+      const width = Math.min(
+        400,
+        Math.max(240, btnRef.current.clientWidth || 320),
+      );
+      btnRef.current.innerHTML = "";
+      window.google.accounts.id.renderButton(btnRef.current, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: gisText,
+        shape: "rectangular",
+        logo_alignment: "center",
+        locale: "fr",
+        width,
+      });
+    }
+
+    const existing = document.getElementById("gis-client-script") as HTMLScriptElement | null;
+    if (window.google) {
+      renderGoogleButton();
+    } else if (existing) {
+      existing.addEventListener("load", renderGoogleButton);
+    } else {
+      const script = document.createElement("script");
+      script.id = "gis-client-script";
+      script.src = GIS_SRC;
+      script.async = true;
+      script.defer = true;
+      script.onload = renderGoogleButton;
+      script.onerror = () =>
+        !cancelled && setError("Connexion Google momentanément indisponible.");
+      document.head.appendChild(script);
+    }
+
+    return () => {
+      cancelled = true;
+      if (existing) existing.removeEventListener("load", renderGoogleButton);
+    };
+  }, [handleCredential, gisText]);
+
   return (
-    <form action={signInWithGoogle}>
-      <input type="hidden" name="next" value={next} />
-      <SubmitButton label={label} />
-    </form>
+    <div className="google-signin">
+      <div
+        ref={btnRef}
+        aria-busy={busy}
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          minHeight: 44,
+          opacity: busy ? 0.6 : 1,
+          pointerEvents: busy ? "none" : "auto",
+        }}
+      />
+      {busy && (
+        <p className="auth-sub" style={{ textAlign: "center", margin: "10px 0 0" }}>
+          Connexion…
+        </p>
+      )}
+      {error && (
+        <div className="auth-error" style={{ marginTop: 10 }}>
+          {error}
+        </div>
+      )}
+    </div>
   );
 }
