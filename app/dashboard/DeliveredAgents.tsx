@@ -1,5 +1,6 @@
 import { Sparkles, CheckCircle2, ExternalLink } from "lucide-react";
 import type { AgentDelivery } from "./MyAgentCard";
+import { getLocale, dictFor } from "@/lib/i18n/server";
 
 /**
  * Affiche les lignes de public.agent_deliveries au statut "delivered"
@@ -7,12 +8,16 @@ import type { AgentDelivery } from "./MyAgentCard";
  * "Ouvrir mon agent GPT" (ouvre agent_url dans un nouvel onglet).
  * Les données sont déjà filtrées par user_id côté serveur (RLS + .eq).
  */
-export default function DeliveredAgents({ deliveries }: { deliveries: AgentDelivery[] }) {
+export default async function DeliveredAgents({ deliveries }: { deliveries: AgentDelivery[] }) {
+  const locale = await getLocale();
+  const t = dictFor(locale);
+  const dd = t.dashboard;
+  const dateLocale = locale === "en" ? "en-US" : "fr-FR";
   return (
     <>
       {deliveries.map((d) => {
         const deliveredDate = d.delivered_at
-          ? new Date(d.delivered_at).toLocaleDateString("fr-FR", {
+          ? new Date(d.delivered_at).toLocaleDateString(dateLocale, {
               day: "numeric",
               month: "long",
               year: "numeric",
@@ -22,9 +27,9 @@ export default function DeliveredAgents({ deliveries }: { deliveries: AgentDeliv
         return (
           <div className="dashboard-card agent-card agent-card-delivered" key={d.id}>
             <div className="agent-card-head">
-              <h2>Mon agent personnalisé</h2>
+              <h2>{dd.myCustomAgent}</h2>
               <span className="status-badge status-badge-delivered">
-                <CheckCircle2 size={13} strokeWidth={2.5} /> Livré
+                <CheckCircle2 size={13} strokeWidth={2.5} /> {dd.badgeDelivered}
               </span>
             </div>
 
@@ -33,9 +38,9 @@ export default function DeliveredAgents({ deliveries }: { deliveries: AgentDeliv
                 <Sparkles size={28} strokeWidth={1.8} />
               </div>
               <div>
-                <p className="agent-card-headline">Votre agent est prêt.</p>
+                <p className="agent-card-headline">{dd.agentReady}</p>
                 {d.agent_name && <p className="agent-card-name">{d.agent_name}</p>}
-                {deliveredDate && <p className="agent-card-meta">Livré le {deliveredDate}</p>}
+                {deliveredDate && <p className="agent-card-meta">{dd.deliveredOn.replace("{date}", deliveredDate)}</p>}
               </div>
             </div>
 
@@ -46,17 +51,17 @@ export default function DeliveredAgents({ deliveries }: { deliveries: AgentDeliv
                 rel="noopener noreferrer"
                 className="btn btn-primary btn-xl agent-card-cta"
               >
-                Ouvrir mon agent GPT <ExternalLink size={18} strokeWidth={2.2} />
+                {dd.openAgent} <ExternalLink size={18} strokeWidth={2.2} />
               </a>
             ) : (
               <p className="agent-card-sub" style={{ marginTop: 18 }}>
-                Le lien d'accès à votre agent vous a été envoyé par email.
+                {dd.linkByEmail}
               </p>
             )}
 
             {d.agent_instructions && (
               <div className="agent-card-instructions">
-                <h3>Instructions d'utilisation</h3>
+                <h3>{dd.instructionsTitle}</h3>
                 <p>{d.agent_instructions}</p>
               </div>
             )}

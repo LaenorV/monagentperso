@@ -12,6 +12,8 @@ import AffiliateTracker from "@/components/AffiliateTracker";
 import WheelModal from "@/components/wheel/WheelModal";
 import { ModalProvider } from "@/components/ModalContext";
 import { AuthProvider } from "@/components/AuthProvider";
+import { LocaleProvider } from "@/lib/i18n/context";
+import { getLocale, dictFor } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
 const inter = Inter({
@@ -27,11 +29,14 @@ const fraunces = Fraunces({
   weight: ["500", "600", "700", "800", "900"],
 });
 
-export const metadata: Metadata = {
-  title: "MonAgentPerso — Agent IA métier personnalisé, livré sous 24h",
-  description:
-    "Votre agent IA professionnel personnalisé selon votre métier, vos règles et vos documents. Livraison sous 24h sur ChatGPT, Claude ou Gemini.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const t = dictFor(locale);
+  return {
+    title: t.metadata.title,
+    description: t.metadata.description,
+  };
+}
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -39,22 +44,27 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     data: { user },
   } = await supabase.auth.getUser();
 
+  const locale = await getLocale();
+  const dict = dictFor(locale);
+
   return (
-    <html lang="fr" className={`${inter.variable} ${fraunces.variable}`}>
+    <html lang={locale} className={`${inter.variable} ${fraunces.variable}`}>
       <body>
-        <AuthProvider initialUser={user}>
-          <ModalProvider>
-            <AffiliateTracker />
-            <Background />
-            <Nav />
-            <main>{children}</main>
-            <Footer />
-            <Modal />
-            <WheelModal />
-            <FlashAlert />
-            <FaqChatbot />
-          </ModalProvider>
-        </AuthProvider>
+        <LocaleProvider locale={locale} dict={dict}>
+          <AuthProvider initialUser={user}>
+            <ModalProvider>
+              <AffiliateTracker />
+              <Background />
+              <Nav />
+              <main>{children}</main>
+              <Footer />
+              <Modal />
+              <WheelModal />
+              <FlashAlert />
+              <FaqChatbot />
+            </ModalProvider>
+          </AuthProvider>
+        </LocaleProvider>
         <Analytics />
       </body>
     </html>

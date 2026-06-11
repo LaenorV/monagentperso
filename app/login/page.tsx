@@ -4,11 +4,13 @@ import { useActionState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+import { useLocale } from "@/lib/i18n/context";
 import { loginAction, type LoginState } from "./actions";
 
 const initialState: LoginState = {};
 
 function LoginForm() {
+  const { t } = useLocale();
   const params = useSearchParams();
   const next = params.get("next") ?? "";
   const redirectedFrom = params.get("redirectedFrom") ?? "";
@@ -21,45 +23,41 @@ function LoginForm() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1>{isQuestionnaireFlow ? "Connectez-vous pour lancer votre questionnaire" : "Se connecter"}</h1>
+        <h1>{isQuestionnaireFlow ? t.auth.loginTitleQuestionnaire : t.auth.loginTitle}</h1>
         <p className="auth-sub">
-          {isQuestionnaireFlow
-            ? "Identifiez-vous pour réclamer votre agent IA personnalisé — le questionnaire s'ouvre dès la connexion."
-            : "Accédez à votre espace pour retrouver votre agent et le suivi de votre commande."}
+          {isQuestionnaireFlow ? t.auth.loginSubQuestionnaire : t.auth.loginSub}
         </p>
 
         {urlError && (
           <div className="auth-error" style={{ marginBottom: 16 }}>
-            {urlError === "google"
-              ? "La connexion Google a échoué. Réessayez ou utilisez votre email."
-              : "Votre session a expiré. Merci de vous reconnecter."}
+            {urlError === "google" ? t.auth.errGoogle : t.auth.errSession}
           </div>
         )}
 
-        <GoogleSignInButton next={next} label="Se connecter avec Google" />
-        <div className="auth-divider"><span>ou par email</span></div>
+        <GoogleSignInButton next={next} mode="signin" />
+        <div className="auth-divider"><span>{t.auth.orByEmail}</span></div>
 
         <form action={formAction} className="auth-form">
           <input type="hidden" name="next" value={next} />
           <input type="hidden" name="redirectedFrom" value={redirectedFrom} />
           <div>
-            <label htmlFor="email">Email</label>
-            <input id="email" name="email" type="email" required autoComplete="email" placeholder="vous@exemple.fr" />
+            <label htmlFor="email">{t.auth.email}</label>
+            <input id="email" name="email" type="email" required autoComplete="email" placeholder={t.auth.emailPh} />
           </div>
           <div>
-            <label htmlFor="password">Mot de passe</label>
+            <label htmlFor="password">{t.auth.password}</label>
             <input id="password" name="password" type="password" required autoComplete="current-password" />
           </div>
 
           {state.error && <div className="auth-error">{state.error}</div>}
 
           <button type="submit" className="btn btn-primary" disabled={pending}>
-            {pending ? "Connexion…" : "Se connecter →"}
+            {pending ? t.auth.loginPending : t.auth.loginBtn}
           </button>
         </form>
 
         <div className="auth-footer">
-          Pas encore de compte ? <Link href={signupHref}>Créer un compte</Link>
+          {t.auth.noAccount} <Link href={signupHref}>{t.auth.createAccount}</Link>
         </div>
       </div>
     </div>
@@ -68,7 +66,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="auth-page"><div className="auth-card">Chargement…</div></div>}>
+    <Suspense fallback={<div className="auth-page"><div className="auth-card">…</div></div>}>
       <LoginForm />
     </Suspense>
   );

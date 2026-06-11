@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Search } from "lucide-react";
+import { useLocale } from "@/lib/i18n/context";
 
 type Props = {
   q: string;
@@ -17,6 +18,7 @@ type Props = {
  * Met à jour l'URL (searchParams) ; la catégorie est gérée par les pills (liens).
  */
 export default function MarketplaceControls({ q, cat, price, sort, prices }: Props) {
+  const { t } = useLocale();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [search, setSearch] = useState(q);
@@ -45,13 +47,13 @@ export default function MarketplaceControls({ q, cat, price, sort, prices }: Pro
         <Search size={18} className="mk-search-ico" />
         <input
           type="search"
-          placeholder="Rechercher un outil, un usage, un métier…"
+          placeholder={t.mk.searchPlaceholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          aria-label="Rechercher dans la marketplace"
+          aria-label={t.mk.searchLabel}
         />
         <button type="submit" className="btn btn-primary mk-search-btn">
-          Rechercher
+          {t.mk.searchBtn}
         </button>
       </form>
 
@@ -59,9 +61,9 @@ export default function MarketplaceControls({ q, cat, price, sort, prices }: Pro
         <select
           value={price}
           onChange={(e) => push({ price: e.target.value })}
-          aria-label="Filtrer par tarif"
+          aria-label={t.mk.priceFilterLabel}
         >
-          <option value="">Tous les tarifs</option>
+          <option value="">{t.mk.allPrices}</option>
           {prices.map((p) => (
             <option key={p} value={p}>
               {p}
@@ -71,10 +73,10 @@ export default function MarketplaceControls({ q, cat, price, sort, prices }: Pro
         <select
           value={sort}
           onChange={(e) => push({ sort: e.target.value })}
-          aria-label="Trier"
+          aria-label={t.mk.sortLabel}
         >
-          <option value="score">Meilleur score</option>
-          <option value="name">Nom (A→Z)</option>
+          <option value="score">{t.mk.sortScore}</option>
+          <option value="name">{t.mk.sortName}</option>
         </select>
       </div>
     </div>

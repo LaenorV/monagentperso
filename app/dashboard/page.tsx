@@ -7,9 +7,10 @@ import MyAgentCard, { type AgentDelivery } from "./MyAgentCard";
 import DeliveredAgents from "./DeliveredAgents";
 import MyRequestCard from "./MyRequestCard";
 import Library, { type LibraryItem, type LibraryItemKind } from "./Library";
-import { getAgent } from "@/lib/ready-made-agents";
+import { getAgentLocalized } from "@/lib/ready-made-agents";
 import ResumePurchaseBanner from "@/components/ResumePurchaseBanner";
 import MyAdvantages, { type PromoRow } from "./MyAdvantages";
+import { getLocale, dictFor } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,11 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login?redirectedFrom=/dashboard");
+
+  const locale = await getLocale();
+  const t = dictFor(locale);
+  const d = t.dashboard;
+  const dateLocale = locale === "en" ? "en-US" : "fr-FR";
 
   // ============================================================
   // DEBUG temporaire — à retirer une fois validé.
@@ -123,9 +129,9 @@ export default async function DashboardPage() {
       customStatus === "livre" && delivery?.agent_url ? delivery.agent_url : null;
     libraryItems.push({
       key: "custom-agent",
-      name: delivery?.agent_name || "Mon agent personnalisé",
+      name: delivery?.agent_name || d.defaultAgentName,
       kind: "custom",
-      category: "Agent personnalisé · 49,90 €",
+      category: d.customCategory,
       date: paidResponse.created_at,
       status: customStatus,
       href: customHref,
@@ -140,7 +146,7 @@ export default async function DashboardPage() {
       key: `rm-${p.agent_slug}-${p.agent_type}-${p.created_at}`,
       name: p.agent_name,
       kind: (p.agent_type as LibraryItemKind) || "both",
-      category: getAgent(p.agent_slug)?.category ?? "Agent prêt à l'emploi",
+      category: getAgentLocalized(p.agent_slug, locale)?.category ?? d.readyMadeCategory,
       date: p.created_at,
       status: null,
       href: `/dashboard/agents/${p.agent_slug}`,
@@ -150,7 +156,7 @@ export default async function DashboardPage() {
   }
 
   const createdAt = user.created_at
-    ? new Date(user.created_at).toLocaleDateString("fr-FR", {
+    ? new Date(user.created_at).toLocaleDateString(dateLocale, {
         day: "numeric",
         month: "long",
         year: "numeric",
@@ -164,8 +170,8 @@ export default async function DashboardPage() {
       <ResumePurchaseBanner />
       <div className="dashboard-head">
         <div>
-          <span className="section-eyebrow">Espace client</span>
-          <h1>Bienvenue, {user.email?.split("@")[0]}.</h1>
+          <span className="section-eyebrow">{d.eyebrow}</span>
+          <h1>{d.welcome.replace("{name}", user.email?.split("@")[0] ?? "")}</h1>
         </div>
         <LogoutButton />
       </div>
@@ -192,14 +198,14 @@ export default async function DashboardPage() {
       )}
 
       <div className="dashboard-card">
-        <h2>Vos informations</h2>
+        <h2>{d.infoTitle}</h2>
         <dl className="dashboard-meta">
-          <dt>Email</dt>
+          <dt>{d.email}</dt>
           <dd>{user.email}</dd>
-          <dt>Compte créé le</dt>
+          <dt>{d.createdAt}</dt>
           <dd>{createdAt}</dd>
-          <dt>Statut</dt>
-          <dd>{user.email_confirmed_at ? "Vérifié" : "En attente de vérification"}</dd>
+          <dt>{d.status}</dt>
+          <dd>{user.email_confirmed_at ? d.verified : d.pendingVerification}</dd>
         </dl>
       </div>
     </div>

@@ -3,8 +3,10 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { CheckCircle2, X } from "lucide-react";
+import { useLocale } from "@/lib/i18n/context";
 
 function Inner() {
+  const { t } = useLocale();
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -31,12 +33,12 @@ function Inner() {
       <span className="welcome-banner-ico">
         <CheckCircle2 size={18} strokeWidth={2.4} />
       </span>
-      <span className="welcome-banner-text">Compte créé avec succès.</span>
+      <span className="welcome-banner-text">{t.dashboard.accountCreatedOk}</span>
       <button
         type="button"
         className="welcome-banner-close"
         onClick={() => setVisible(false)}
-        aria-label="Fermer"
+        aria-label={t.dashboard.close}
       >
         <X size={16} strokeWidth={2.4} />
       </button>

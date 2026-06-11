@@ -27,14 +27,14 @@ function IgIcon({ size = 24 }: { size?: number }) {
 }
 
 // Carte promo insérée dans la grille (proposition B) — aucune mention de prix.
-function PromoCard() {
+function PromoCard({ m }: { m: Dictionary["mk"] }) {
   return (
     <article className="mk-promo-card">
       <div className="mk-promo-ico"><Sparkles size={22} strokeWidth={2} /></div>
-      <h3>Aucun outil ne fait <em>exactement</em> ce qu'il vous faut ?</h3>
-      <p>On vous crée un agent IA sur‑mesure pour votre métier, livré sous 24h.</p>
-      <CtaButton className="btn btn-primary mk-promo-btn">Réclamer mon agent →</CtaButton>
-      <Link href="/agents-gpt" className="mk-promo-link">ou voir les agents prêts à l'emploi</Link>
+      <h3>{m.promoTitle1}<em>{m.promoTitleEm}</em>{m.promoTitle2}</h3>
+      <p>{m.promoText}</p>
+      <CtaButton className="btn btn-primary mk-promo-btn">{m.promoBtn}</CtaButton>
+      <Link href="/agents-gpt" className="mk-promo-link">{m.promoLink}</Link>
     </article>
   );
 }
@@ -46,12 +46,13 @@ import {
   type MarketplaceTool,
 } from "@/lib/data/marketplace";
 import MarketplaceControls from "./MarketplaceControls";
+import { getDict, getLocale, dictFor } from "@/lib/i18n/server";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
-export const metadata: Metadata = {
-  title: "Marketplace IA — Outils, prompts, agents & workflows | MonAgentPerso",
-  description:
-    "Explorez la marketplace IA : des milliers d'outils, des prompts prêts à l'emploi, des agents GPT et Claude sur-entraînés et des workflows JSON.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = dictFor(await getLocale());
+  return { title: t.mk.metaTitle, description: t.mk.metaDesc };
+}
 
 type SearchParams = Promise<{
   q?: string;
@@ -62,19 +63,21 @@ type SearchParams = Promise<{
 }>;
 
 // Onglets de types de contenu. Seul "Outils IA" est actif pour cette première version.
-const CONTENT_TABS: {
+function contentTabs(m: Dictionary["mk"]): {
   key: string;
   label: string;
   Icon: typeof Store;
   active?: boolean;
   href?: string;
-}[] = [
-  { key: "outils", label: "Outils IA", Icon: Store, active: true },
-  { key: "prompts", label: "Prompts", Icon: FileText },
-  { key: "gpt", label: "Agents GPT", Icon: Bot, href: "/agents-gpt" },
-  { key: "claude", label: "Agents Claude", Icon: Sparkles, href: "/agents-claude" },
-  { key: "workflows", label: "Workflows JSON", Icon: Workflow },
-];
+}[] {
+  return [
+    { key: "outils", label: m.tabOutils, Icon: Store, active: true },
+    { key: "prompts", label: m.tabPrompts, Icon: FileText },
+    { key: "gpt", label: m.tabGpt, Icon: Bot, href: "/agents-gpt" },
+    { key: "claude", label: m.tabClaude, Icon: Sparkles, href: "/agents-claude" },
+    { key: "workflows", label: m.tabWorkflows, Icon: Workflow },
+  ];
+}
 
 function buildHref(
   base: { q: string; cat: string; price: string; sort: string; page?: string },
@@ -91,7 +94,7 @@ function buildHref(
   return qs ? `/marketplace?${qs}` : "/marketplace";
 }
 
-function ToolCard({ tool }: { tool: MarketplaceTool }) {
+function ToolCard({ tool, discoverLabel }: { tool: MarketplaceTool; discoverLabel: string }) {
   return (
     <article className="mk-card">
       <div className="mk-card-head">
@@ -127,7 +130,7 @@ function ToolCard({ tool }: { tool: MarketplaceTool }) {
         rel="noopener noreferrer"
         className="mk-card-cta"
       >
-        Découvrir l'outil <ExternalLink size={14} strokeWidth={2.2} />
+        {discoverLabel} <ExternalLink size={14} strokeWidth={2.2} />
       </a>
     </article>
   );
@@ -145,6 +148,11 @@ export default async function MarketplacePage({
   const sort = sp.sort ?? "score";
   const page = Number(sp.page ?? "1") || 1;
 
+  const locale = await getLocale();
+  const t = dictFor(locale);
+  const m = t.mk;
+  const nf = (n: number) => n.toLocaleString(locale === "en" ? "en-US" : "fr-FR");
+
   const base = { q, cat, price, sort };
   const { items, total, page: current, pages } = filterTools({ q, cat, price, sort, page });
 
@@ -160,14 +168,11 @@ export default async function MarketplacePage({
         >
           <div className="ig-banner-ico"><IgIcon size={28} /></div>
           <div className="ig-banner-text">
-            <b>L'actualité IA, c'est par ici 👉 @evolify_ai</b>
-            <span>
-              Prompts prêts à l'emploi, agents IA, outils IA méconnus et nouveautés : suivez-nous sur
-              Instagram pour ne rien rater.
-            </span>
+            <b>{m.igTitle}</b>
+            <span>{m.igText}</span>
           </div>
           <span className="ig-banner-btn">
-            <IgIcon size={16} /> Suivre sur Instagram
+            <IgIcon size={16} /> {m.igBtn}
           </span>
         </a>
       </div>
@@ -176,24 +181,21 @@ export default async function MarketplacePage({
       <div className="mk-hero">
         <div className="container mk-hero-grid">
           <div>
-            <span className="section-eyebrow">Marketplace</span>
-            <h1 className="mk-hero-title">La marketplace IA, tout au même endroit.</h1>
-            <p className="mk-hero-sub">
-              Des milliers d'outils IA, des prompts prêts à l'emploi, des agents GPT et Claude
-              sur-entraînés et des workflows automatisés. Explorez, comparez, adoptez.
-            </p>
+            <span className="section-eyebrow">{m.eyebrow}</span>
+            <h1 className="mk-hero-title">{m.heroTitle}</h1>
+            <p className="mk-hero-sub">{m.heroSub}</p>
             <div className="mk-hero-stats">
               <div className="mk-stat">
-                <b>{TOOLS.length.toLocaleString("fr-FR")}</b>
-                <span>outils référencés</span>
+                <b>{nf(TOOLS.length)}</b>
+                <span>{m.statTools}</span>
               </div>
               <div className="mk-stat">
                 <b>{CATEGORIES.length}</b>
-                <span>catégories</span>
+                <span>{m.statCats}</span>
               </div>
               <div className="mk-stat">
-                <b>Bientôt</b>
-                <span>prompts & agents</span>
+                <b>{m.statSoon}</b>
+                <span>{m.statSoonSub}</span>
               </div>
             </div>
           </div>
@@ -208,17 +210,16 @@ export default async function MarketplacePage({
         <div className="mk-promise">
           <div className="mk-promise-ico"><Sparkles size={20} strokeWidth={2.2} /></div>
           <p className="mk-promise-line">
-            <strong>Aucun outil ne colle parfaitement à votre métier ?</strong> On vous crée un agent
-            IA sur‑mesure, livré sous 24h.
+            <strong>{m.promiseStrong}</strong>{m.promiseRest}
           </p>
-          <CtaButton className="btn btn-primary mk-promise-btn">Réclamer mon agent →</CtaButton>
+          <CtaButton className="btn btn-primary mk-promise-btn">{m.promiseBtn}</CtaButton>
         </div>
       </div>
 
       <div className="container">
         {/* === ONGLETS TYPES DE CONTENU === */}
-        <div className="mk-tabs" role="tablist" aria-label="Types de contenu">
-          {CONTENT_TABS.map(({ key, label, Icon, active, href }) =>
+        <div className="mk-tabs" role="tablist" aria-label={m.tabsLabel}>
+          {contentTabs(m).map(({ key, label, Icon, active, href }) =>
             active ? (
               <span key={key} className="mk-tab mk-tab-active" role="tab" aria-selected="true">
                 <Icon size={16} strokeWidth={2.1} /> {label}
@@ -230,7 +231,7 @@ export default async function MarketplacePage({
             ) : (
               <span key={key} className="mk-tab mk-tab-soon" role="tab" aria-disabled="true">
                 <Icon size={16} strokeWidth={2.1} /> {label}
-                <span className="mk-soon-badge">Bientôt</span>
+                <span className="mk-soon-badge">{m.soonBadge}</span>
               </span>
             ),
           )}
@@ -245,7 +246,7 @@ export default async function MarketplacePage({
             href={buildHref(base, { cat: "", page: "1" })}
             className={`mk-cat ${cat === "" ? "mk-cat-active" : ""}`}
           >
-            Toutes
+            {m.catsAll}
           </Link>
           {CATEGORIES.map((c) => (
             <Link
@@ -261,11 +262,11 @@ export default async function MarketplacePage({
         {/* === RÉSULTATS === */}
         <div className="mk-resultline">
           <span>
-            <strong>{total.toLocaleString("fr-FR")}</strong> outil{total > 1 ? "s" : ""}
+            <strong>{nf(total)}</strong> {total > 1 ? m.resultToolPlur : m.resultToolSing}
             {cat && (
               <>
                 {" "}
-                · catégorie <strong>{cat}</strong>
+                · {m.resultCategory} <strong>{cat}</strong>
               </>
             )}
             {q && (
@@ -276,23 +277,23 @@ export default async function MarketplacePage({
             )}
           </span>
           <span className="mk-resultline-page">
-            Page {current} / {pages}
+            {m.pageLabel.replace("{current}", String(current)).replace("{pages}", String(pages))}
           </span>
         </div>
 
         {items.length === 0 ? (
           <div className="mk-empty">
-            <p>Aucun outil ne correspond à votre recherche.</p>
+            <p>{m.emptyText}</p>
             <Link href="/marketplace" className="btn btn-light">
-              Réinitialiser les filtres
+              {m.resetFilters}
             </Link>
           </div>
         ) : (
           <div className="mk-grid">
             {items.map((tool, i) => (
               <Fragment key={tool.slug || tool.name}>
-                <ToolCard tool={tool} />
-                {(i + 1) % 8 === 0 && i < items.length - 1 && <PromoCard key={`promo-${i}`} />}
+                <ToolCard tool={tool} discoverLabel={m.discover} />
+                {(i + 1) % 8 === 0 && i < items.length - 1 && <PromoCard key={`promo-${i}`} m={m} />}
               </Fragment>
             ))}
           </div>
@@ -306,11 +307,11 @@ export default async function MarketplacePage({
                 href={buildHref(base, { page: String(current - 1) })}
                 className="btn btn-light mk-page-btn"
               >
-                <ChevronLeft size={16} /> Précédent
+                <ChevronLeft size={16} /> {m.prev}
               </Link>
             ) : (
               <span className="btn btn-light mk-page-btn mk-page-disabled">
-                <ChevronLeft size={16} /> Précédent
+                <ChevronLeft size={16} /> {m.prev}
               </span>
             )}
             <span className="mk-page-info">
@@ -321,11 +322,11 @@ export default async function MarketplacePage({
                 href={buildHref(base, { page: String(current + 1) })}
                 className="btn btn-light mk-page-btn"
               >
-                Suivant <ChevronRight size={16} />
+                {m.next} <ChevronRight size={16} />
               </Link>
             ) : (
               <span className="btn btn-light mk-page-btn mk-page-disabled">
-                Suivant <ChevronRight size={16} />
+                {m.next} <ChevronRight size={16} />
               </span>
             )}
           </div>
@@ -335,9 +336,9 @@ export default async function MarketplacePage({
       {/* === BARRE CTA COLLANTE (C) — aucune mention de prix === */}
       <div className="mk-sticky">
         <span className="mk-sticky-text">
-          🚀 Votre agent IA métier <strong>sur‑mesure</strong>, livré sous 24h.
+          {m.stickyA}{m.stickyStrong && <strong>{m.stickyStrong}</strong>}{m.stickyB}
         </span>
-        <CtaButton className="btn btn-primary mk-sticky-btn">Réclamer mon agent →</CtaButton>
+        <CtaButton className="btn btn-primary mk-sticky-btn">{m.stickyBtn}</CtaButton>
       </div>
     </div>
   );

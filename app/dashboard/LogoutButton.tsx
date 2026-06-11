@@ -2,8 +2,10 @@
 
 import { useTransition } from "react";
 import { logoutAction } from "./actions";
+import { useLocale } from "@/lib/i18n/context";
 
 export default function LogoutButton() {
+  const { t } = useLocale();
   const [pending, start] = useTransition();
   return (
     <button
@@ -12,7 +14,7 @@ export default function LogoutButton() {
       disabled={pending}
       onClick={() => start(() => logoutAction())}
     >
-      {pending ? "Déconnexion…" : "Se déconnecter"}
+      {pending ? t.dashboard.loggingOut : t.dashboard.logout}
     </button>
   );
 }

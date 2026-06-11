@@ -1,16 +1,188 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import CtaButton from "@/components/CtaButton";
+import { getLocale, dictFor } from "@/lib/i18n/server";
 
-export const metadata = {
-  title: "ChatGPT, Claude ou Gemini : que choisir ? — MonAgentPerso",
-  description:
-    "Comparatif honnête des trois principaux assistants IA pour les professionnels. Forces, limites et cas d'usage de ChatGPT, Claude et Gemini.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  if (locale === "en") {
+    return {
+      title: "ChatGPT, Claude or Gemini: which to choose? — MonAgentPerso",
+      description:
+        "An honest comparison of the three main AI assistants for professionals. Strengths, limits and use cases of ChatGPT, Claude and Gemini.",
+    };
+  }
+  return {
+    title: "ChatGPT, Claude ou Gemini : que choisir ? — MonAgentPerso",
+    description:
+      "Comparatif honnête des trois principaux assistants IA pour les professionnels. Forces, limites et cas d'usage de ChatGPT, Claude et Gemini.",
+  };
+}
 
-export default function ArticlePage() {
+export default async function ArticlePage() {
+  const locale = await getLocale();
+  const b = dictFor(locale).blog;
+  if (locale === "en") {
+    return (
+      <div className="container article">
+        <Link href="/blog" className="article-back">{b.backAll}</Link>
+        <div className="article-meta">
+          <span className="section-eyebrow">Comparison</span>
+          <span>· 7 min read</span>
+        </div>
+        <h1>ChatGPT, Claude or Gemini: which to choose?</h1>
+        <p className="article-lead">
+          Three assistants, three philosophies, and one shared goal: saving you time. But the right choice
+          depends on your real usage, not on the latest product announcement. Here's a pragmatic guide to pick
+          the platform that fits you.
+        </p>
+
+        <div className="article-content">
+          <p>
+            The question comes up at every meeting: “Would you recommend ChatGPT, Claude or Gemini?”. Our answer
+            is never the same. Because there's no best tool in the absolute, only a best tool for{" "}
+            <strong>your profession, your deliverables, the way you work</strong>. This article gives you the
+            criteria to decide without hesitation.
+          </p>
+
+          <h2>Three platforms, three main strengths</h2>
+          <p>
+            Before comparing in detail, remember these three positionings. They're not exhaustive, but they give
+            the right starting angle.
+          </p>
+          <ul>
+            <li><strong>ChatGPT</strong> is the <em>all-rounder</em>. It includes a real gallery of models, multimedia features (image, voice, code) and an ecosystem of custom GPTs that are very simple to create.</li>
+            <li><strong>Claude</strong> excels at <em>long texts and editorial nuance</em>. Its large context window lets it ingest bulky documents, and its writing style is often considered the most natural of the three.</li>
+            <li><strong>Gemini</strong> is the best <em>integrated into the Google environment</em>: Gmail, Drive, Docs, Sheets. Ideal if your day is already on Workspace.</li>
+          </ul>
+
+          <div className="article-callout">
+            <div className="article-callout-ico">✦</div>
+            <div>
+              <strong>The key angle</strong>
+              Don't choose based on technical benchmarks. Choose based on the tool you'll open 80% of the time:
+              your email client, your Drive, your favorite chat interface.
+            </div>
+          </div>
+
+          <h2>ChatGPT — when to choose it</h2>
+          <p>
+            ChatGPT stands out if your need combines several formats: generating text, creating an image,
+            analyzing a file, browsing the web. Its <strong>“custom GPTs”</strong> feature lets anyone create an
+            assistant dedicated to a use case, with their own documents and instructions. It's currently the most
+            complete solution for a professional who wants a single tool able to cover 80% of their needs.
+          </p>
+          <h3>Strengths</h3>
+          <ul>
+            <li>Mature, easy-to-set-up custom-GPT ecosystem.</li>
+            <li>Native multimodality (text, image, voice, code).</li>
+            <li>Good at following complex instructions in a single interaction.</li>
+            <li>Huge community, abundant resources, many third-party integrations.</li>
+          </ul>
+          <h3>Limits</h3>
+          <ul>
+            <li>On very long texts, the style can become more mechanical.</li>
+            <li>Integration with classic office tools (Google, Microsoft) remains indirect.</li>
+          </ul>
+
+          <h2>Claude — when to choose it</h2>
+          <p>
+            Claude is our recommendation when your work relies on <strong>writing quality, nuance or document
+            analysis</strong>. A consultant who produces reports, a lawyer who summarizes case files, a
+            communications officer who polishes speeches: Claude generally delivers more natural, better-structured
+            texts than its competitors.
+          </p>
+          <p>
+            Its particularly large context window also lets it ingest very bulky documents (full reports,
+            transcripts, internal books) and reason over them without chunking.
+          </p>
+          <h3>Strengths</h3>
+          <ul>
+            <li>Writing and nuance quality often superior on long texts.</li>
+            <li>Excellent ability to analyze bulky documents.</li>
+            <li>Rigorous instruction-following, few hallucinations on factual topics.</li>
+            <li>A “project” format that centralizes instructions, files and conversations.</li>
+          </ul>
+          <h3>Limits</h3>
+          <ul>
+            <li>Fewer multimedia features than ChatGPT (image generation in particular).</li>
+            <li>A more limited plugin/integration ecosystem.</li>
+          </ul>
+
+          <h2>Gemini — when to choose it</h2>
+          <p>
+            Gemini becomes obvious if your day revolves around <strong>Google Workspace</strong>. The assistant
+            shows up directly in Gmail (writing and summarizing emails), Docs (writing and rephrasing), Sheets
+            (formulas and summaries), Drive (searching your files). The integration is noticeably deeper than with
+            the other two.
+          </p>
+          <h3>Strengths</h3>
+          <ul>
+            <li>Native integration in Gmail, Docs, Sheets, Drive, Calendar.</li>
+            <li>Very good for short, contextual tasks (summarize an email, rephrase a paragraph).</li>
+            <li>Solid web search with directly linked sources.</li>
+            <li>Very good value within the Workspace subscription.</li>
+          </ul>
+          <h3>Limits</h3>
+          <ul>
+            <li>Deep personalization less polished than ChatGPT's GPTs.</li>
+            <li>Writing style sometimes more rigid on long content.</li>
+          </ul>
+
+          <h2>The quick decision table</h2>
+          <p>Here's a shortcut if you want to decide in 30 seconds:</p>
+          <ul>
+            <li><strong>You want a single tool that does everything</strong> → ChatGPT.</li>
+            <li><strong>You produce a lot of long or nuanced text</strong> → Claude.</li>
+            <li><strong>You work all day in Gmail / Docs / Drive</strong> → Gemini.</li>
+            <li><strong>You want very deep, shareable personalization</strong> → ChatGPT (GPTs).</li>
+            <li><strong>You regularly handle large documents (50+ pages)</strong> → Claude.</li>
+          </ul>
+
+          <blockquote>
+            “The best tool is the one you'll actually open every morning. All the benchmarks in the world don't
+            beat real daily use.”
+          </blockquote>
+
+          <h2>Still hesitating?</h2>
+          <p>
+            The good news is that all three platforms offer a free version or a trial. You can test them in
+            parallel for a week on <strong>one and the same real task</strong> (a recurring email, a type of
+            quote, a summary). For each output, note: quality, time saved, edits needed. By the end of the week the
+            choice will be obvious — and based on your usage, not on a marketing promise.
+          </p>
+
+          <div className="article-callout">
+            <div className="article-callout-ico">⚡</div>
+            <div>
+              <strong>Our advice</strong>
+              When you entrust us with creating your agent via the questionnaire, we steer you toward the platform
+              best suited to your profession — and we deliver the agent directly in the matching format (GPT,
+              Claude.md or Gemini Gem).
+            </div>
+          </div>
+
+          <h2>In short</h2>
+          <p>
+            There's no best AI assistant in the absolute. There's the one that best fits your day, your type of
+            deliverables and your style. <strong>ChatGPT</strong> for versatility and easy-to-deploy custom agents.
+            <strong> Claude</strong> for nuanced writing and bulky documents. <strong>Gemini</strong> for users
+            already rooted in Google Workspace. Choosing isn't giving up: it's focusing your efforts.
+          </p>
+        </div>
+
+        <div className="article-cta">
+          <h3>Not sure which platform to choose?</h3>
+          <p>Our questionnaire identifies the tool best suited to your profession — and we deliver the agent in the matching format.</p>
+          <CtaButton className="btn btn-primary btn-xl">Start my questionnaire →</CtaButton>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container article">
-      <Link href="/blog" className="article-back">← Tous les articles</Link>
+      <Link href="/blog" className="article-back">{b.backAll}</Link>
       <div className="article-meta">
         <span className="section-eyebrow">Comparatif</span>
         <span>· 7 min de lecture</span>

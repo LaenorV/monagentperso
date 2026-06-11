@@ -1,15 +1,181 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { getLocale, dictFor } from "@/lib/i18n/server";
 
-export const metadata = {
-  title: "Pourquoi votre CV n'arrive jamais au recruteur (et comment passer les ATS) — MonAgentPerso",
-  description:
-    "8 CV sur 10 sont filtrés par un logiciel avant tout regard humain. Comment fonctionnent les ATS, le formatage qui passe, les mots-clés qui comptent et les puces qui décrochent un entretien.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  if (locale === "en") {
+    return {
+      title: "Why your CV never reaches the recruiter (and how to pass ATS) — MonAgentPerso",
+      description:
+        "8 out of 10 CVs are filtered by software before any human look. How ATS work, the formatting that passes, the keywords that count and the bullets that land an interview.",
+    };
+  }
+  return {
+    title: "Pourquoi votre CV n'arrive jamais au recruteur (et comment passer les ATS) — MonAgentPerso",
+    description:
+      "8 CV sur 10 sont filtrés par un logiciel avant tout regard humain. Comment fonctionnent les ATS, le formatage qui passe, les mots-clés qui comptent et les puces qui décrochent un entretien.",
+  };
+}
 
-export default function ArticlePage() {
+export default async function ArticlePage() {
+  const locale = await getLocale();
+  const b = dictFor(locale).blog;
+  if (locale === "en") {
+    return (
+      <div className="container article">
+        <Link href="/blog" className="article-back">{b.backAll}</Link>
+        <div className="article-meta">
+          <span className="section-eyebrow">Jobs</span>
+          <span>· 7 min read</span>
+        </div>
+        <h1>Why your CV never reaches the recruiter</h1>
+        <p className="article-lead">
+          You apply, you get nothing back, not even a rejection. The problem often isn't your profile: it's that
+          a <strong>piece of software</strong> filtered out your CV before a human opened it. Most companies now
+          screen via an ATS. Here's how it reads your CV — and what to change to clear the filter.
+        </p>
+
+        <div className="article-content">
+          <p>
+            An ATS (<em>Applicant Tracking System</em>) is the software that receives and ranks applications.
+            According to industry data, nearly <strong>99% of recruiters</strong> apply keyword filters to it.
+            Understanding its logic means you stop playing against it.
+          </p>
+
+          <h2>1. How an ATS (really) reads your CV</h2>
+          <p>The journey is always the same:</p>
+          <ol>
+            <li><strong>Parsing</strong>: the software extracts the text and tries to sort it into fields (name, contact, experience, education, skills).</li>
+            <li><strong>Normalization</strong>: it converts everything to standard text to compare candidates with each other.</li>
+            <li><strong>Matching</strong>: it compares your CV to the job (skills, tools, title) and computes a <strong>match score</strong>.</li>
+            <li><strong>Ranking</strong>: a poorly read CV or one missing the right keywords falls to the bottom of the pile, or is filtered out.</li>
+          </ol>
+          <div className="article-callout">
+            <div className="article-callout-ico">⚠</div>
+            <div>
+              <strong>Pitfall #1</strong>
+              Contact details placed in the <strong>header or footer</strong> are missed by the ATS about one
+              time in four. Always put email and phone in the body of the document.
+            </div>
+          </div>
+
+          <h2>2. The formatting that passes — and the one that breaks everything</h2>
+          <div className="article-two-col">
+            <div>
+              <h3>Do</h3>
+              <ul>
+                <li><strong>Single-column</strong> layout.</li>
+                <li><strong>Standard</strong> section titles (Experience, Education, Skills).</li>
+                <li>Classic font (Arial, Calibri, Times).</li>
+                <li><strong>Selectable</strong> text (never an image).</li>
+                <li>Export to <strong>PDF</strong> (or .docx if the job requires it).</li>
+              </ul>
+            </div>
+            <div>
+              <h3>Avoid</h3>
+              <ul>
+                <li>Multiple columns, <strong>tables</strong>, text boxes.</li>
+                <li>Images, logos, <strong>skill gauges</strong>.</li>
+                <li>Icons, exotic characters.</li>
+                <li>Key info in the header/footer.</li>
+                <li>“Creative” templates packed with columns.</li>
+              </ul>
+            </div>
+          </div>
+          <p>
+            The “designed” CV you find pretty is often unreadable to the machine. Keep an{" "}
+            <strong>ATS (plain text)</strong> version for applying online; save the design for sending directly
+            to a human.
+          </p>
+
+          <h2>3. Keywords: reuse the exact terms from the job</h2>
+          <p>
+            This is the highest-return factor. Across large volumes of applications, those who{" "}
+            <strong>tailor their CV to the job get about twice as many interviews</strong>. The rule:
+          </p>
+          <ul>
+            <li>Spot the <strong>literal</strong> skills, tools and titles in the ad.</li>
+            <li>Reuse them <strong>as is</strong>: if the job says “project management”, write “project management”, not “I led projects”. The ATS doesn't guess synonyms.</li>
+            <li>But <strong>anchor every keyword in something real</strong>: a term you couldn't defend in an interview has no place on the CV.</li>
+          </ul>
+          <p>
+            To avoid: <em>keyword stuffing</em> (piling up keywords out of context). It reads copy-pasted and gets
+            spotted immediately.
+          </p>
+
+          <h2>4. Bullets that land the interview</h2>
+          <p>
+            The human recruiter decides in <strong>under 8 seconds</strong>. What grabs them: results, not tasks.
+            Turn each line into the <strong>PAR</strong> format (Problem → Action → Result), with a figure.
+          </p>
+          <p><strong>Before:</strong> “Sales manager, managing a client portfolio.”</p>
+          <p><strong>After:</strong> “Grew a portfolio of 42 B2B accounts and lifted revenue from €847k to €1.21M in 14 months.”</p>
+          <div className="article-callout">
+            <div className="article-callout-ico">✦</div>
+            <div>
+              <strong>The “asymmetric numbers” trick</strong>
+              Numbers that are too round (“+20%, 1000 clients”) sound made up. Precise, irregular numbers
+              (“+37%, 1,248 clients, 14 months”) signal a real measurement — and inspire more trust.
+            </div>
+          </div>
+
+          <h2>5. The new pitfall: “it smells of AI”</h2>
+          <p>
+            More and more recruiters (and recent ATS) spot CVs generated without proofreading. The signals: a
+            robotic vocabulary and interchangeable phrasing. To avoid:
+          </p>
+          <ul>
+            <li>“AI-signature” verbs (<em>spearheaded, orchestrated, leveraged</em>) and the empty shells: “equipped with proven expertise”, “passionate about challenges”, “solution-oriented”.</li>
+            <li>Bullets all identical in length and structure.</li>
+            <li>The total absence of concrete details (project names, context, precise figures).</li>
+          </ul>
+          <p>
+            The right reflex: AI saves time on the skeleton, but it's <strong>you</strong> who inject the true
+            details no machine can invent.
+          </p>
+
+          <h2>6. France vs international: don't get it wrong</h2>
+          <ul>
+            <li><strong>Photo</strong>: tolerated in France, <strong>to be banned</strong> for US/UK/Canada applications (anti-discrimination).</li>
+            <li><strong>Age, nationality, family status</strong>: optional in France, <strong>forbidden</strong> in English-speaking countries.</li>
+            <li>Adapt to the <strong>employer's country</strong>, not yours.</li>
+          </ul>
+
+          <h2>The checklist before sending</h2>
+          <ul>
+            <li>Title and headline aligned with the job?</li>
+            <li>Exact keywords from the job, anchored in something real?</li>
+            <li>Each experience = PAR format with a quantified result?</li>
+            <li>Single-column format, no table or image, contact in the body?</li>
+            <li>Zero typos, zero hollow buzzwords, bullets of varied lengths?</li>
+            <li>Fits on one page (two for a senior profile)?</li>
+          </ul>
+
+          <h2>In short</h2>
+          <p>
+            Your CV must please <strong>two readers</strong>: a piece of software and a human. For the software:
+            clean formatting and the job's exact keywords. For the human: quantified, precise results, and text
+            that doesn't smell of copy-paste. The same profile, presented by these rules, goes from “never a reply”
+            to “several interviews” — without exaggerating anything.
+          </p>
+        </div>
+
+        <div className="article-cta">
+          <h3>A CV tailored to the job, in minutes</h3>
+          <p>
+            Our CV agent optimizes your CV for ATS, reuses the ad's keywords and quantifies your results — without
+            inventing anything. Unlock it for €4.90.
+          </p>
+          <Link href="/agents-gpt" className="btn btn-primary btn-xl">See the CV agent →</Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container article">
-      <Link href="/blog" className="article-back">← Tous les articles</Link>
+      <Link href="/blog" className="article-back">{b.backAll}</Link>
       <div className="article-meta">
         <span className="section-eyebrow">Emploi</span>
         <span>· 7 min de lecture</span>

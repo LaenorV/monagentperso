@@ -2,84 +2,21 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight, X, Check, Bot, Sparkles } from "lucide-react";
+import { useLocale } from "@/lib/i18n/context";
 
-type CaseData = {
-  id: string;
-  persona: string;
-  scenario: string;
-  chatgpt: {
-    src: string;
-    bullets: string[];
-  };
-  agent: {
-    src: string;
-    bullets: string[];
-  };
-};
-
-const cases: CaseData[] = [
-  {
-    id: "julien",
-    persona: "Julien · Mandataire immobilier Lyon",
-    scenario: "Rédaction d'une annonce T3 haussmannien",
-    chatgpt: {
-      src: "/videos/julien-chatgpt.mp4",
-      bullets: [
-        "Prompt plus long à rédiger",
-        "Résultat trop court",
-        "Ajout de gras automatiquement",
-        "Pas copiable directement",
-        "Invente des données qu'il ne possède pas",
-        "Annonce très amatrice",
-      ],
-    },
-    agent: {
-      src: "/videos/julien-agent.mp4",
-      bullets: [
-        "Prompt en quelques lignes",
-        "Résultat copiable sans modification",
-        "L'agent n'invente rien",
-        "Précise ce qu'il reste à compléter",
-        "Ton pro inspiré des meilleures annonces",
-        "Connaît déjà les tâches du métier",
-        "Système de commandes /",
-        "Mémorise toutes les informations transmises",
-      ],
-    },
-  },
-  {
-    id: "lea",
-    persona: "Léa · Coach sportive Bordeaux",
-    scenario: "Message WhatsApp à une cliente démotivée",
-    chatgpt: {
-      src: "/videos/lea-chatgpt.mp4",
-      bullets: [
-        "Prompt immense avec beaucoup de précisions à ajouter",
-        "+ de 10 min perdues à rédiger",
-        "Résultat non conforme aux demandes",
-        "Règles métier non respectées",
-        "Besoin de re-prompter et de modifier",
-      ],
-    },
-    agent: {
-      src: "/videos/lea-agent.mp4",
-      bullets: [
-        "Récap de toutes les actions de l'agent",
-        "Commandes / pour un gain de temps immédiat",
-        "Respect des consignes de l'utilisatrice",
-        "Copiable directement",
-        "Concis comme demandé",
-        "Tutoiement et proximité avec la cliente",
-        "7 lignes max, comme exigé",
-        "Prompt rédigé en quelques dizaines de secondes",
-      ],
-    },
-  },
+// Médias (identiques quelle que soit la langue) ; le texte vient du dictionnaire,
+// parallèle par index à t.compare.cases.
+const MEDIA = [
+  { id: "julien", chatgptSrc: "/videos/julien-chatgpt.mp4", agentSrc: "/videos/julien-agent.mp4" },
+  { id: "lea", chatgptSrc: "/videos/lea-chatgpt.mp4", agentSrc: "/videos/lea-agent.mp4" },
 ];
 
 export default function ComparisonVideos() {
+  const { t } = useLocale();
+  const cases = t.compare.cases;
   const [idx, setIdx] = useState(0);
   const current = cases[idx];
+  const media = MEDIA[idx];
   const prev = () => setIdx((i) => (i - 1 + cases.length) % cases.length);
   const next = () => setIdx((i) => (i + 1) % cases.length);
 
@@ -90,14 +27,14 @@ export default function ComparisonVideos() {
           type="button"
           className="compare-nav"
           onClick={prev}
-          aria-label="Cas précédent"
+          aria-label={t.compare.prevLabel}
           disabled={cases.length <= 1}
         >
           <ChevronLeft size={22} strokeWidth={2.2} />
         </button>
         <div className="compare-meta">
           <span className="compare-eyebrow">
-            Cas n°{idx + 1} sur {cases.length}
+            {t.compare.caseLabel.replace("{n}", String(idx + 1)).replace("{total}", String(cases.length))}
           </span>
           <h3 className="compare-title">{current.persona}</h3>
           <p className="compare-scenario">{current.scenario}</p>
@@ -106,7 +43,7 @@ export default function ComparisonVideos() {
           type="button"
           className="compare-nav"
           onClick={next}
-          aria-label="Cas suivant"
+          aria-label={t.compare.nextLabel}
           disabled={cases.length <= 1}
         >
           <ChevronRight size={22} strokeWidth={2.2} />
@@ -117,12 +54,12 @@ export default function ComparisonVideos() {
         {/* === ChatGPT classique === */}
         <article className="compare-col compare-col-bad">
           <div className="compare-badge compare-badge-bad">
-            <Bot size={14} strokeWidth={2.4} /> ChatGPT classique
+            <Bot size={14} strokeWidth={2.4} /> {t.compare.chatgptBadge}
           </div>
           <div className="compare-video-wrap">
             <video
-              key={`chatgpt-${current.id}`}
-              src={current.chatgpt.src}
+              key={`chatgpt-${media.id}`}
+              src={media.chatgptSrc}
               controls
               preload="metadata"
               playsInline
@@ -130,7 +67,7 @@ export default function ComparisonVideos() {
             />
           </div>
           <ul className="compare-bullets compare-bullets-bad">
-            {current.chatgpt.bullets.map((b, i) => (
+            {current.chatgptBullets.map((b, i) => (
               <li key={i}>
                 <span className="compare-bullet-ico">
                   <X size={13} strokeWidth={3} />
@@ -149,12 +86,12 @@ export default function ComparisonVideos() {
         {/* === Agent personnalisé === */}
         <article className="compare-col compare-col-good">
           <div className="compare-badge compare-badge-good">
-            <Sparkles size={14} strokeWidth={2.4} /> Agent personnalisé
+            <Sparkles size={14} strokeWidth={2.4} /> {t.compare.agentBadge}
           </div>
           <div className="compare-video-wrap">
             <video
-              key={`agent-${current.id}`}
-              src={current.agent.src}
+              key={`agent-${media.id}`}
+              src={media.agentSrc}
               controls
               preload="metadata"
               playsInline
@@ -162,7 +99,7 @@ export default function ComparisonVideos() {
             />
           </div>
           <ul className="compare-bullets compare-bullets-good">
-            {current.agent.bullets.map((b, i) => (
+            {current.agentBullets.map((b, i) => (
               <li key={i}>
                 <span className="compare-bullet-ico">
                   <Check size={13} strokeWidth={3} />
@@ -174,14 +111,14 @@ export default function ComparisonVideos() {
         </article>
       </div>
 
-      <div className="compare-dots" role="tablist" aria-label="Sélecteur de cas">
+      <div className="compare-dots" role="tablist" aria-label={t.compare.dotsLabel}>
         {cases.map((c, i) => (
           <button
             type="button"
-            key={c.id}
+            key={MEDIA[i].id}
             className={`compare-dot${i === idx ? " active" : ""}`}
             onClick={() => setIdx(i)}
-            aria-label={`Voir cas ${i + 1} — ${c.persona}`}
+            aria-label={t.compare.dotLabel.replace("{n}", String(i + 1)).replace("{persona}", c.persona)}
             aria-selected={i === idx}
             role="tab"
           />

@@ -1,5 +1,7 @@
 import { Gift, Ticket } from "lucide-react";
 import WheelCtaButton from "@/components/wheel/WheelCtaButton";
+import { getDict } from "@/lib/i18n/server";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 export type PromoRow = {
   code: string;
@@ -9,13 +11,13 @@ export type PromoRow = {
   status: string;
 };
 
-function usageLabel(p: PromoRow): string {
-  if (p.applies_to === "marketplace") return "1 achat marketplace offert";
-  if (p.discount_value >= 100) return "Agent personnalisé offert";
-  return `-${p.discount_value} % sur l'agent personnalisé`;
+function usageLabel(p: PromoRow, d: Dictionary["dashboard"]): string {
+  if (p.applies_to === "marketplace") return d.advMarketplaceFree;
+  if (p.discount_value >= 100) return d.advAgentFree;
+  return d.advDiscount.replace("{value}", String(p.discount_value));
 }
 
-export default function MyAdvantages({
+export default async function MyAdvantages({
   promos,
   spun,
   spinLabel,
@@ -24,25 +26,23 @@ export default function MyAdvantages({
   spun: boolean;
   spinLabel: string | null;
 }) {
+  const t = await getDict();
+  const d = t.dashboard;
   return (
     <div className="dashboard-card">
       <div className="agent-card-head">
         <h2>
           <Gift size={20} strokeWidth={2} style={{ verticalAlign: "-3px", marginRight: 8 }} />
-          Mes avantages
+          {d.advTitle}
         </h2>
         {!spun && <WheelCtaButton className="btn btn-primary btn-nav" />}
       </div>
 
       {!spun ? (
-        <p style={{ color: "var(--muted)", marginTop: 8 }}>
-          Vous n'avez pas encore tourné la roue. Tentez votre chance pour gagner une réduction ou un
-          agent offert.
-        </p>
+        <p style={{ color: "var(--muted)", marginTop: 8 }}>{d.advNotSpun}</p>
       ) : promos.length === 0 ? (
         <p style={{ color: "var(--muted)", marginTop: 8 }}>
-          Résultat de la roue : <strong>{spinLabel ?? "—"}</strong>. Pas de code cette fois — mais
-          découvrez nos agents prêts à l'emploi dans la marketplace.
+          {d.advNoCodePrefix} <strong>{spinLabel ?? "—"}</strong>{d.advNoCodeSuffix}
         </p>
       ) : (
         <div className="advantages-list">
@@ -50,20 +50,17 @@ export default function MyAdvantages({
             <div className="advantage-item" key={p.code}>
               <div className="advantage-ico"><Ticket size={20} strokeWidth={2} /></div>
               <div className="advantage-info">
-                <b>{usageLabel(p)}</b>
+                <b>{usageLabel(p, d)}</b>
                 <div className="advantage-meta">
                   <code className="advantage-code">{p.code}</code>
                   <span className={p.status === "active" ? "badge-unpaid" : "badge-paid"}>
-                    {p.status === "active" ? "Actif" : "Utilisé"}
+                    {p.status === "active" ? d.advActive : d.advUsed}
                   </span>
                 </div>
               </div>
             </div>
           ))}
-          <p className="advantage-hint">
-            Saisissez votre code au moment de payer (après le questionnaire pour l'agent personnalisé,
-            ou dans la marketplace au moment de débloquer un agent).
-          </p>
+          <p className="advantage-hint">{d.advHint}</p>
         </div>
       )}
     </div>

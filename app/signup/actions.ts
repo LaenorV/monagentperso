@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getDict } from "@/lib/i18n/server";
 
 export type SignupState = {
   error?: string;
@@ -34,14 +35,15 @@ export async function signupAction(
     .replace(/[^A-Za-z0-9._]/g, "")
     .slice(0, 30);
 
+  const t = await getDict();
   if (!email || !password) {
-    return { error: "Email et mot de passe requis." };
+    return { error: t.auth.actionEmailPwRequired };
   }
   if (password.length < 8) {
-    return { error: "Le mot de passe doit contenir au moins 8 caractères." };
+    return { error: t.auth.actionPwTooShort };
   }
   if (password !== passwordConfirm) {
-    return { error: "Les deux mots de passe ne correspondent pas." };
+    return { error: t.auth.actionPwMismatch };
   }
 
   const supabase = await createClient();

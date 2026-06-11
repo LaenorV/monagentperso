@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { useLocale } from "@/lib/i18n/context";
 
 /**
  * Connexion Google via Google Identity Services (GIS) + Supabase
@@ -38,12 +39,13 @@ declare global {
 
 export default function GoogleSignInButton({
   next = "",
-  label = "Continuer avec Google",
+  mode = "signin",
 }: {
   next?: string;
-  label?: string;
+  mode?: "signin" | "signup";
 }) {
   const router = useRouter();
+  const { t, locale } = useLocale();
   const btnRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -51,14 +53,14 @@ export default function GoogleSignInButton({
   const destination =
     next === "questionnaire" ? "/dashboard?openQuestionnaire=1" : "/dashboard";
 
-  // Texte localisé du bouton Google selon le contexte (connexion / inscription).
-  const gisText = /inscr/i.test(label) ? "signup_with" : "signin_with";
+  // Texte du bouton Google (localisé automatiquement par GIS selon `locale`).
+  const gisText = mode === "signup" ? "signup_with" : "signin_with";
 
   // Réception du credential (ID token JWT) renvoyé par Google.
   const handleCredential = useCallback(
     async (response: CredentialResponse) => {
       if (!response?.credential) {
-        setError("La connexion Google a échoué. Réessayez ou utilisez votre email.");
+        setError(t.auth.googleFailed);
         return;
       }
       setBusy(true);
@@ -71,7 +73,7 @@ export default function GoogleSignInButton({
         });
         if (signInError || !data?.session) {
           setBusy(false);
-          setError("La connexion Google a échoué. Réessayez ou utilisez votre email.");
+          setError(t.auth.googleFailed);
           return;
         }
         // Session Supabase OK → on quitte immédiatement la page d'auth pour
@@ -80,15 +82,15 @@ export default function GoogleSignInButton({
         router.refresh();
       } catch {
         setBusy(false);
-        setError("La connexion Google a échoué. Réessayez ou utilisez votre email.");
+        setError(t.auth.googleFailed);
       }
     },
-    [destination, router],
+    [destination, router, t],
   );
 
   useEffect(() => {
     if (!CLIENT_ID) {
-      setError("Connexion Google momentanément indisponible.");
+      setError(t.auth.googleUnavailable);
       return;
     }
     let cancelled = false;
@@ -115,7 +117,7 @@ export default function GoogleSignInButton({
         text: gisText,
         shape: "rectangular",
         logo_alignment: "center",
-        locale: "fr",
+        locale,
         width,
       });
     }
@@ -132,8 +134,7 @@ export default function GoogleSignInButton({
       script.async = true;
       script.defer = true;
       script.onload = renderGoogleButton;
-      script.onerror = () =>
-        !cancelled && setError("Connexion Google momentanément indisponible.");
+      script.onerror = () => !cancelled && setError(t.auth.googleUnavailable);
       document.head.appendChild(script);
     }
 
@@ -141,7 +142,7 @@ export default function GoogleSignInButton({
       cancelled = true;
       if (existing) existing.removeEventListener("load", renderGoogleButton);
     };
-  }, [handleCredential, gisText]);
+  }, [handleCredential, gisText, locale, t]);
 
   return (
     <div className="google-signin">
@@ -158,7 +159,7 @@ export default function GoogleSignInButton({
       />
       {busy && (
         <p className="auth-sub" style={{ textAlign: "center", margin: "10px 0 0" }}>
-          Connexion…
+          {t.auth.googleConnecting}
         </p>
       )}
       {error && (

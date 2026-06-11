@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "./AuthProvider";
 import { useModal } from "./ModalContext";
+import { useLocale } from "@/lib/i18n/context";
 
 // Routes où le pop-up est masqué.
 const HIDDEN_PATHS = ["/login", "/signup", "/dashboard"];
 
 export default function FlashAlert() {
   const { user } = useAuth();
+  const { t } = useLocale();
   const { isOpen: modalOpen } = useModal();
   const pathname = usePathname() ?? "";
   const router = useRouter();
@@ -42,16 +44,16 @@ export default function FlashAlert() {
 
   return (
     <div className={`flash-alert${visible ? " show" : ""}`} role="alert" aria-live="polite">
-      <button className="flash-alert-close" onClick={dismiss} aria-label="Fermer">×</button>
+      <button className="flash-alert-close" onClick={dismiss} aria-label={t.flash.close}>×</button>
       <div className="flash-alert-top">
         <div className="flash-alert-bang">!</div>
         <div>
-          <span className="flash-alert-tag">Offre flash</span>
-          <h4>Lancement spécial — jusqu'au 21 juin</h4>
+          <span className="flash-alert-tag">{t.flash.tag}</span>
+          <h4>{t.flash.title}</h4>
         </div>
       </div>
       <div className="flash-alert-body">
-        <p>Bénéficiez d'une réduction exceptionnelle sur votre agent IA personnalisé livré sous 24h.</p>
+        <p>{t.flash.body}</p>
         <div className="flash-alert-price">
           <span className="old">79,90€</span>
           <span className="new">
@@ -60,7 +62,7 @@ export default function FlashAlert() {
         </div>
       </div>
       <button className="flash-alert-cta" onClick={handleClick}>
-        Je me lance ! →
+        {t.flash.cta}
       </button>
     </div>
   );

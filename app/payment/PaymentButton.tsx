@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "@/lib/i18n/context";
 
 type Props = {
   pendingId: string;
 };
 
 export default function PaymentButton({ pendingId }: Props) {
+  const { t } = useLocale();
+  const p = t.payment;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
 
@@ -27,7 +30,7 @@ export default function PaymentButton({ pendingId }: Props) {
       console.log("[paiement] HTTP", res.status);
     } catch (err) {
       console.error("[paiement] erreur réseau:", err);
-      setError("Erreur réseau — vérifiez votre connexion et réessayez.");
+      setError(p.errNetwork);
       setLoading(false);
       return;
     }
@@ -43,7 +46,7 @@ export default function PaymentButton({ pendingId }: Props) {
       data = await res.json();
     } catch (err) {
       console.error("[paiement] réponse non-JSON:", err);
-      setError(`Réponse serveur invalide (HTTP ${res.status}).`);
+      setError(p.errInvalidResponse.replace("{status}", String(res.status)));
       setLoading(false);
       return;
     }
@@ -51,14 +54,14 @@ export default function PaymentButton({ pendingId }: Props) {
 
     if (!res.ok) {
       console.error(`[paiement] /api/checkout a renvoyé HTTP ${res.status}:`, data);
-      setError(`${data.message || data.error || "Erreur serveur."} (HTTP ${res.status})`);
+      setError(`${data.message || data.error || p.errServerPrefix} (HTTP ${res.status})`);
       setLoading(false);
       return;
     }
 
     if (!data.url) {
       console.error("[paiement] data.url absent dans la réponse:", data);
-      setError("Stripe n'a pas retourné d'URL de paiement.");
+      setError(p.errNoUrl);
       setLoading(false);
       return;
     }
@@ -87,7 +90,7 @@ export default function PaymentButton({ pendingId }: Props) {
         }}
         disabled={loading}
       >
-        {loading ? "Redirection vers le paiement…" : "Payer 49,90€"}
+        {loading ? p.redirecting : p.pay}
       </button>
       <p
         style={{

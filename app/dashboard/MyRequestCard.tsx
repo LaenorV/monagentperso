@@ -1,4 +1,5 @@
 import { FileText } from "lucide-react";
+import { getLocale, dictFor } from "@/lib/i18n/server";
 
 type CheckboxAnswer = { selected: string[]; other?: string };
 type AnyAnswer = string | string[] | CheckboxAnswer | Record<string, unknown> | null | undefined;
@@ -35,8 +36,11 @@ function formatAnswer(value: AnyAnswer): string | null {
   return null;
 }
 
-export default function MyRequestCard({ paidAt, questionnaire }: Props) {
-  const date = new Date(paidAt).toLocaleDateString("fr-FR", {
+export default async function MyRequestCard({ paidAt, questionnaire }: Props) {
+  const locale = await getLocale();
+  const t = dictFor(locale);
+  const d = t.dashboard;
+  const date = new Date(paidAt).toLocaleDateString(locale === "en" ? "en-US" : "fr-FR", {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -44,6 +48,7 @@ export default function MyRequestCard({ paidAt, questionnaire }: Props) {
 
   const rows = KEY_FIELDS.map((key) => ({
     key,
+    label: d.requestFields[key] ?? key,
     value: formatAnswer(questionnaire[key]),
   })).filter((r) => r.value !== null);
 
@@ -56,14 +61,14 @@ export default function MyRequestCard({ paidAt, questionnaire }: Props) {
       <div className="request-card-head">
         <div className="request-card-ico"><FileText size={20} strokeWidth={2} /></div>
         <div>
-          <h2>Votre demande</h2>
-          <p className="request-card-date">Soumise le {date}</p>
+          <h2>{d.yourRequest}</h2>
+          <p className="request-card-date">{d.submittedOn.replace("{date}", date)}</p>
         </div>
       </div>
       <dl className="request-grid">
-        {rows.map(({ key, value }) => (
+        {rows.map(({ key, label, value }) => (
           <div className="request-row" key={key}>
-            <dt>{key}</dt>
+            <dt>{label}</dt>
             <dd>{value}</dd>
           </div>
         ))}

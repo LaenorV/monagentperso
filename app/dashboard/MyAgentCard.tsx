@@ -1,5 +1,7 @@
 import { Sparkles, Clock, CheckCircle2, AlertTriangle, ExternalLink } from "lucide-react";
 import QuestionnaireCta from "@/components/QuestionnaireCta";
+import { getLocale, dictFor } from "@/lib/i18n/server";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 export type DeliveryStatus = "in_progress" | "delivered" | "revision_needed";
 
@@ -19,11 +21,11 @@ type Props = {
   delivery: AgentDelivery | null;
 };
 
-function StatusBadge({ status }: { status: "pending" | "delivered" | "revision" }) {
+function StatusBadge({ status, d }: { status: "pending" | "delivered" | "revision"; d: Dictionary["dashboard"] }) {
   const config = {
-    pending: { label: "En cours", className: "status-badge-pending", Icon: Clock },
-    delivered: { label: "Livré", className: "status-badge-delivered", Icon: CheckCircle2 },
-    revision: { label: "Modification en cours", className: "status-badge-revision", Icon: AlertTriangle },
+    pending: { label: d.badgePending, className: "status-badge-pending", Icon: Clock },
+    delivered: { label: d.badgeDelivered, className: "status-badge-delivered", Icon: CheckCircle2 },
+    revision: { label: d.badgeRevision, className: "status-badge-revision", Icon: AlertTriangle },
   }[status];
   const Icon = config.Icon;
   return (
@@ -33,18 +35,23 @@ function StatusBadge({ status }: { status: "pending" | "delivered" | "revision" 
   );
 }
 
-export default function MyAgentCard({ hasPaidOrder, delivery }: Props) {
+export default async function MyAgentCard({ hasPaidOrder, delivery }: Props) {
+  const locale = await getLocale();
+  const t = dictFor(locale);
+  const d = t.dashboard;
+  const dateLocale = locale === "en" ? "en-US" : "fr-FR";
+
   // === Cas 1 : aucune commande payée ===
   if (!hasPaidOrder) {
     return (
       <div className="dashboard-card agent-card">
         <div className="agent-card-head">
-          <h2>Mon agent</h2>
+          <h2>{d.myAgent}</h2>
         </div>
-        <p>Vous n'avez pas encore réclamé votre agent.</p>
+        <p>{d.notClaimed}</p>
         <div style={{ marginTop: 18 }}>
           <QuestionnaireCta className="btn btn-primary btn-xl">
-            Réclamer mon agent →
+            {d.claimCta}
           </QuestionnaireCta>
         </div>
       </div>
@@ -57,19 +64,16 @@ export default function MyAgentCard({ hasPaidOrder, delivery }: Props) {
     return (
       <div className="dashboard-card agent-card">
         <div className="agent-card-head">
-          <h2>Mon agent</h2>
-          <StatusBadge status="pending" />
+          <h2>{d.myAgent}</h2>
+          <StatusBadge status="pending" d={d} />
         </div>
         <div className="agent-card-status">
           <div className="agent-card-status-ico"><Clock size={22} strokeWidth={2} /></div>
           <div>
-            <p className="agent-card-headline">Votre demande a bien été reçue.</p>
-            <p className="agent-card-sub">
-              Votre agent personnalisé est en cours de création. Il sera prêt sous 24h,
-              envoyé par email et retrouvable directement dans cet espace utilisateur.
-            </p>
+            <p className="agent-card-headline">{d.receivedHeadline}</p>
+            <p className="agent-card-sub">{d.receivedSub}</p>
             {delivery?.agent_name && (
-              <p className="agent-card-meta">Nom prévu : <strong>{delivery.agent_name}</strong></p>
+              <p className="agent-card-meta">{d.plannedName} <strong>{delivery.agent_name}</strong></p>
             )}
           </div>
         </div>
@@ -82,25 +86,22 @@ export default function MyAgentCard({ hasPaidOrder, delivery }: Props) {
     return (
       <div className="dashboard-card agent-card">
         <div className="agent-card-head">
-          <h2>Mon agent</h2>
-          <StatusBadge status="revision" />
+          <h2>{d.myAgent}</h2>
+          <StatusBadge status="revision" d={d} />
         </div>
         <div className="agent-card-status agent-card-status-revision">
           <div className="agent-card-status-ico"><AlertTriangle size={22} strokeWidth={2} /></div>
           <div>
-            <p className="agent-card-headline">Une modification est en cours.</p>
-            <p className="agent-card-sub">
-              Nous ajustons votre agent suite à votre retour. Il sera de nouveau disponible
-              très rapidement.
-            </p>
+            <p className="agent-card-headline">{d.revisionHeadline}</p>
+            <p className="agent-card-sub">{d.revisionSub}</p>
             {delivery.admin_note && (
               <div className="agent-card-note">
-                <strong>Note de l'équipe :</strong>
+                <strong>{d.teamNote}</strong>
                 <p>{delivery.admin_note}</p>
               </div>
             )}
             {delivery.agent_name && (
-              <p className="agent-card-meta">Agent concerné : <strong>{delivery.agent_name}</strong></p>
+              <p className="agent-card-meta">{d.agentConcerned} <strong>{delivery.agent_name}</strong></p>
             )}
           </div>
         </div>
@@ -110,7 +111,7 @@ export default function MyAgentCard({ hasPaidOrder, delivery }: Props) {
 
   // === Cas 3 : agent livré ===
   const deliveredDate = delivery.delivered_at
-    ? new Date(delivery.delivered_at).toLocaleDateString("fr-FR", {
+    ? new Date(delivery.delivered_at).toLocaleDateString(dateLocale, {
         day: "numeric",
         month: "long",
         year: "numeric",
@@ -120,18 +121,18 @@ export default function MyAgentCard({ hasPaidOrder, delivery }: Props) {
   return (
     <div className="dashboard-card agent-card agent-card-delivered">
       <div className="agent-card-head">
-        <h2>Mon agent</h2>
-        <StatusBadge status="delivered" />
+        <h2>{d.myAgent}</h2>
+        <StatusBadge status="delivered" d={d} />
       </div>
       <div className="agent-card-hero">
         <div className="agent-card-hero-ico"><Sparkles size={28} strokeWidth={1.8} /></div>
         <div>
-          <p className="agent-card-headline">Votre agent est prêt.</p>
+          <p className="agent-card-headline">{d.agentReady}</p>
           {delivery.agent_name && (
             <p className="agent-card-name">{delivery.agent_name}</p>
           )}
           {deliveredDate && (
-            <p className="agent-card-meta">Livré le {deliveredDate}</p>
+            <p className="agent-card-meta">{d.deliveredOn.replace("{date}", deliveredDate)}</p>
           )}
         </div>
       </div>
@@ -143,17 +144,17 @@ export default function MyAgentCard({ hasPaidOrder, delivery }: Props) {
           rel="noopener noreferrer"
           className="btn btn-primary btn-xl agent-card-cta"
         >
-          Ouvrir mon agent GPT <ExternalLink size={18} strokeWidth={2.2} />
+          {d.openAgent} <ExternalLink size={18} strokeWidth={2.2} />
         </a>
       ) : (
         <p className="agent-card-sub" style={{ marginTop: 18 }}>
-          Le lien d'accès à votre agent vous a été envoyé par email.
+          {d.linkByEmail}
         </p>
       )}
 
       {delivery.agent_instructions && (
         <div className="agent-card-instructions">
-          <h3>Instructions d'utilisation</h3>
+          <h3>{d.instructionsTitle}</h3>
           <p>{delivery.agent_instructions}</p>
         </div>
       )}

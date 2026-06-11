@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ShoppingCart, X } from "lucide-react";
 import { useAuth } from "./AuthProvider";
+import { useLocale } from "@/lib/i18n/context";
 import {
   getAgent,
   getPendingPurchase,
@@ -21,6 +22,7 @@ function parsePending(raw: string): { slug: string; platform: AgentPlatform } {
  */
 export default function ResumePurchaseBanner() {
   const { user } = useAuth();
+  const { t } = useLocale();
   const [slug, setSlug] = useState("");
   const [platform, setPlatform] = useState<AgentPlatform>("gpt");
   const [loading, setLoading] = useState(false);
@@ -67,17 +69,17 @@ export default function ResumePurchaseBanner() {
     <div className="resume-banner" role="status">
       <ShoppingCart size={18} strokeWidth={2.2} />
       <span>
-        Reprenez votre achat : <strong>{agent.name}</strong> — version {platformLabel} (
+        {t.dashboard.resumePrefix} <strong>{agent.name}</strong> — {t.dashboard.resumeVersion} {platformLabel} (
         {agent.priceLabel}).
       </span>
       <button type="button" className="btn btn-primary btn-nav" onClick={resume} disabled={loading}>
-        {loading ? "Redirection…" : `Continuer l'achat`}
+        {loading ? t.dashboard.resumeRedirect : t.dashboard.resumeContinue}
       </button>
       <button
         type="button"
         className="resume-banner-close"
         onClick={dismiss}
-        aria-label="Ignorer"
+        aria-label={t.dashboard.resumeDismiss}
       >
         <X size={16} />
       </button>

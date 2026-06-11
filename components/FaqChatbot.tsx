@@ -2,9 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bot, X, Search, ChevronDown } from "lucide-react";
-import { FAQ_CATEGORIES, FAQ_ITEMS } from "@/lib/faq-data";
+import { getFaqCategories, getFaqItems } from "@/lib/faq-data";
+import { useLocale } from "@/lib/i18n/context";
 
 export default function FaqChatbot() {
+  const { t, locale } = useLocale();
+  const categories = getFaqCategories(locale);
+  const items = getFaqItems(locale);
   const [open, setOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [query, setQuery] = useState("");
@@ -15,7 +19,7 @@ export default function FaqChatbot() {
   // Items filtrés par catégorie + recherche
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return FAQ_ITEMS.filter((item) => {
+    return items.filter((item) => {
       if (activeCategory !== "all" && item.category !== activeCategory) return false;
       if (q) {
         const hay = `${item.q} ${item.a}`.toLowerCase();
@@ -23,7 +27,7 @@ export default function FaqChatbot() {
       }
       return true;
     });
-  }, [activeCategory, query]);
+  }, [activeCategory, query, items]);
 
   // Focus search à l'ouverture
   useEffect(() => {
@@ -54,13 +58,13 @@ export default function FaqChatbot() {
       {/* === Bouton flottant + bulle === */}
       <div className={`faq-fab${open ? " faq-fab-hidden" : ""}`}>
         <div className="faq-fab-bubble" aria-hidden="true">
-          Pose-moi une question
+          {t.faq.bubble}
         </div>
         <button
           type="button"
           className="faq-fab-button"
           onClick={() => setOpen(true)}
-          aria-label="Ouvrir la foire aux questions"
+          aria-label={t.faq.openLabel}
         >
           <Bot size={28} strokeWidth={1.8} />
         </button>
@@ -72,7 +76,7 @@ export default function FaqChatbot() {
         className={`faq-panel${open ? " open" : ""}`}
         role="dialog"
         aria-modal="false"
-        aria-label="Foire aux questions MonAgentPerso"
+        aria-label={t.faq.panelLabel}
         aria-hidden={!open}
       >
         <header className="faq-panel-head">
@@ -81,7 +85,7 @@ export default function FaqChatbot() {
               <Bot size={20} strokeWidth={2} />
             </span>
             <div>
-              <strong>FAQ</strong>
+              <strong>{t.faq.title}</strong>
               <small>MonAgentPerso</small>
             </div>
           </div>
@@ -89,7 +93,7 @@ export default function FaqChatbot() {
             type="button"
             className="faq-panel-close"
             onClick={() => setOpen(false)}
-            aria-label="Fermer la FAQ"
+            aria-label={t.faq.closeLabel}
           >
             <X size={20} strokeWidth={2.2} />
           </button>
@@ -100,22 +104,22 @@ export default function FaqChatbot() {
           <input
             ref={searchRef}
             type="search"
-            placeholder="Rechercher une question…"
+            placeholder={t.faq.searchPlaceholder}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="Rechercher dans la FAQ"
+            aria-label={t.faq.searchLabel}
           />
         </div>
 
-        <nav className="faq-panel-categories" aria-label="Filtrer par catégorie">
+        <nav className="faq-panel-categories" aria-label={t.faq.filterLabel}>
           <button
             type="button"
             className={`faq-cat${activeCategory === "all" ? " active" : ""}`}
             onClick={() => setActiveCategory("all")}
           >
-            Tous
+            {t.faq.all}
           </button>
-          {FAQ_CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <button
               type="button"
               key={c.id}
@@ -130,8 +134,8 @@ export default function FaqChatbot() {
         <div className="faq-panel-body">
           {filtered.length === 0 ? (
             <p className="faq-empty">
-              Aucune question ne correspond à votre recherche.<br />
-              Reformulez ou changez de catégorie.
+              {t.faq.empty}<br />
+              {t.faq.emptyHint}
             </p>
           ) : (
             <ul className="faq-list">
@@ -159,7 +163,7 @@ export default function FaqChatbot() {
         </div>
 
         <footer className="faq-panel-foot">
-          Une autre question ? Contactez-nous depuis votre espace utilisateur.
+          {t.faq.foot}
         </footer>
       </div>
     </>

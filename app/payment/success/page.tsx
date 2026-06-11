@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { stripe } from "@/lib/stripe";
+import { getLocale, dictFor } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -8,10 +9,10 @@ type Props = {
   searchParams: Promise<{ session_id?: string }>;
 };
 
-function formatAmount(amount: number | null | undefined, currency: string | null | undefined) {
+function formatAmount(amount: number | null | undefined, currency: string | null | undefined, intlLocale: string) {
   if (amount == null || !currency) return null;
   try {
-    return new Intl.NumberFormat("fr-FR", {
+    return new Intl.NumberFormat(intlLocale, {
       style: "currency",
       currency: currency.toUpperCase(),
     }).format(amount / 100);
@@ -22,6 +23,9 @@ function formatAmount(amount: number | null | undefined, currency: string | null
 
 export default async function PaymentSuccessPage({ searchParams }: Props) {
   const { session_id: sessionId } = await searchParams;
+  const locale = await getLocale();
+  const p = dictFor(locale).payment;
+  const intlLocale = locale === "en" ? "en-US" : "fr-FR";
 
   let confirmed = false;
   let amount: string | null = null;
@@ -31,7 +35,7 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
     try {
       const session = await stripe.checkout.sessions.retrieve(sessionId);
       confirmed = session.payment_status === "paid";
-      amount = formatAmount(session.amount_total, session.currency);
+      amount = formatAmount(session.amount_total, session.currency, intlLocale);
       email = session.customer_details?.email ?? session.customer_email ?? null;
     } catch (err) {
       console.error("Stripe session retrieve failed:", err);
@@ -55,21 +59,19 @@ export default async function PaymentSuccessPage({ searchParams }: Props) {
         >
           <CheckCircle2 size={42} strokeWidth={2} />
         </div>
-        <span className="section-eyebrow">Paiement confirmé</span>
-        <h1>{confirmed ? "Merci pour votre commande !" : "Paiement en cours de traitement…"}</h1>
+        <span className="section-eyebrow">{p.confirmedEyebrow}</span>
+        <h1>{confirmed ? p.successTitle : p.processingTitle}</h1>
         <p style={{ fontSize: 17, color: "var(--muted)", lineHeight: 1.65, marginTop: 14 }}>
-          {confirmed
-            ? "Votre demande a bien été reçue. Votre agent personnalisé sera préparé sous 24h et vous sera envoyé par email. Vous pourrez également le retrouver directement dans votre espace utilisateur."
-            : "Le traitement Stripe est en cours. Si ce message persiste, rafraîchissez la page dans quelques secondes."}
+          {confirmed ? p.successBody : p.processingBody}
         </p>
         {amount && (
           <p style={{ marginTop: 18, fontSize: 22, fontWeight: 700, color: "var(--ink)" }}>
-            {amount} {email && <small style={{ color: "var(--muted)", fontSize: 14, fontWeight: 500, display: "block", marginTop: 6 }}>Reçu envoyé à {email}</small>}
+            {amount} {email && <small style={{ color: "var(--muted)", fontSize: 14, fontWeight: 500, display: "block", marginTop: 6 }}>{p.receiptTo.replace("{email}", email)}</small>}
           </p>
         )}
         <div style={{ display: "flex", gap: 12, flexDirection: "column", marginTop: 28 }}>
-          <Link href="/dashboard" className="btn btn-primary btn-xl">Accéder à mon espace →</Link>
-          <Link href="/" className="btn btn-light">Retour à l'accueil</Link>
+          <Link href="/dashboard" className="btn btn-primary btn-xl">{p.goSpace}</Link>
+          <Link href="/" className="btn btn-light">{p.backHome}</Link>
         </div>
       </div>
     </div>

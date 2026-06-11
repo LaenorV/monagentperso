@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import PaymentButton from "./PaymentButton";
+import { getLocale, dictFor } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,9 @@ export default async function PaymentPage() {
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login?next=payment");
+
+  const t = dictFor(await getLocale());
+  const p = t.payment;
 
   // 2. On essaye de récupérer le dernier pending_questionnaire en attente de paiement
   const { data: pending } = await supabase
@@ -27,10 +31,10 @@ export default async function PaymentPage() {
   return (
     <div className="container payment-page">
       <div className="payment-box">
-        <span className="section-eyebrow">Paiement sécurisé</span>
-        <h1>Finalisez votre commande</h1>
+        <span className="section-eyebrow">{p.eyebrow}</span>
+        <h1>{p.title}</h1>
         <p style={{ fontSize: 18, color: "var(--muted)", lineHeight: 1.6, marginTop: 12 }}>
-          Votre agent sera livré sous 24h maximum, envoyé par email et accessible directement dans votre espace utilisateur.
+          {p.sub}
         </p>
         <div className="old-price" style={{ textAlign: "center" }}>79,90€</div>
         <p className="price" style={{ color: "var(--ink)", fontSize: 70 }}>49,90€</p>
@@ -44,14 +48,14 @@ export default async function PaymentPage() {
               style={{ marginTop: 14, textAlign: "left" }}
               role="alert"
             >
-              ⚠ Aucun questionnaire en attente. Remplissez-le d'abord pour pouvoir payer.
+              {p.noPending}
             </div>
             <Link
               className="btn btn-primary"
               style={{ width: "100%", marginTop: 12 }}
               href="/dashboard?openQuestionnaire=1"
             >
-              Remplir le questionnaire →
+              {p.fillQuestionnaire}
             </Link>
           </>
         )}
@@ -61,7 +65,7 @@ export default async function PaymentPage() {
           style={{ width: "100%", marginTop: 12 }}
           href="/"
         >
-          Retour à l'accueil
+          {p.backHome}
         </Link>
       </div>
     </div>

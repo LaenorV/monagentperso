@@ -138,8 +138,127 @@ export const READY_MADE_AGENTS: ReadyMadeAgent[] = [
   },
 ];
 
+// --- Traductions anglaises (champs localisables uniquement) ----------------
+import type { Locale } from "./i18n/config";
+
+export const AGENT_PRICE_LABEL_EN = "€4.90";
+
+type AgentL10n = { name: string; shortDescription: string; category: string; publicPreview: string[] };
+
+const AGENT_EN: Record<string, AgentL10n> = {
+  humanizer: {
+    name: "AI Humanizer",
+    shortDescription:
+      "Rewrites AI-generated text so it sounds natural and no longer triggers detectors — without changing the meaning.",
+    category: "Writing",
+    publicPreview: [
+      "Knows how detectors work (perplexity, burstiness) and all the major tools",
+      "Removes AI tics and varies the rhythm, keeping your register",
+      "Several intensity levels + reformulations on demand",
+    ],
+  },
+  dissertation: {
+    name: "Disserto — Essays",
+    shortDescription:
+      "Writes structured, natural essays, from middle school to higher education, part by part.",
+    category: "Studies",
+    publicPreview: [
+      "Full method: thesis, outline, argued paragraphs, transitions",
+      "Adapted by discipline (philosophy, law, history, economics, prep schools…)",
+      "Part-by-part writing + reformulations for a polished result",
+    ],
+  },
+  "cv-optimizer": {
+    name: "CV Optimizer",
+    shortDescription:
+      "Builds a CV that passes ATS, tailored to the target job and striking in 8 seconds — without inventing anything.",
+    category: "Jobs",
+    publicPreview: [
+      "ATS optimization + the job's exact keywords",
+      "Quantified experience in PAR format, punchy headline",
+      "France / international adaptation (photo, age, GDPR)",
+    ],
+  },
+  resumeur: {
+    name: "Summarizer",
+    shortDescription:
+      "Turns PDFs, courses, articles and videos into a clear summary + key points, faithful to the source.",
+    category: "Productivity",
+    publicPreview: [
+      "Several levels: TL;DR, key points, detailed summary",
+      "Cornell note, mind map, table formats",
+      "Strict fidelity: no invented information",
+    ],
+  },
+  "fiches-quiz": {
+    name: "Flashcards & Quizzes",
+    shortDescription:
+      "Generates flashcards and quizzes from your courses for lasting memorization.",
+    category: "Studies",
+    publicPreview: [
+      "Science-based: active recall + spaced repetition",
+      "Flashcards, MCQs, fill-in-the-blanks, quizzes with answer keys",
+      "Anki / Quizlet export + revision schedule",
+    ],
+  },
+  "meta-prompt": {
+    name: "Meta-Prompt",
+    shortDescription:
+      "Crafts perfect, structured and reusable prompts, optimized for your AI model.",
+    category: "AI & Power users",
+    publicPreview: [
+      "Proven frameworks (RTF, COSTAR) + advanced techniques",
+      "Reusable variables + a sample result provided",
+      "Per-model optimization (Claude, GPT, Gemini, Mistral)",
+    ],
+  },
+  entretien: {
+    name: "Interview Prep",
+    shortDescription:
+      "A job-interview simulator that questions you, evaluates you and helps you improve.",
+    category: "Jobs",
+    publicPreview: [
+      "Realistic simulation, question by question, with scored feedback",
+      "STAR method, trick questions, salary negotiation",
+      "Levels from supportive → stressful, personalized via the job ad",
+    ],
+  },
+  slides: {
+    name: "Slides / Presentation",
+    shortDescription:
+      "Builds the structure and content of a clear, impactful presentation, slide by slide.",
+    category: "Productivity",
+    publicPreview: [
+      "Pro frameworks: SCQA, Minto pyramid, Kawasaki pitch",
+      "Message-carrying titles, 6×6 rule, data-viz",
+      "Speaker notes + visual suggestions",
+    ],
+  },
+};
+
+export function agentPriceLabel(locale: Locale): string {
+  return locale === "en" ? AGENT_PRICE_LABEL_EN : AGENT_PRICE_LABEL;
+}
+
+// Renvoie un agent avec ses champs localisés selon la locale.
+export function localizeAgent(a: ReadyMadeAgent, locale: Locale): ReadyMadeAgent {
+  if (locale !== "en") return a;
+  const tr = AGENT_EN[a.slug];
+  if (!tr) return a;
+  return { ...a, ...tr, priceLabel: AGENT_PRICE_LABEL_EN };
+}
+
+export function getLocalizedAgents(locale: Locale): ReadyMadeAgent[] {
+  return READY_MADE_AGENTS.map((a) => localizeAgent(a, locale));
+}
+
 export function getAgent(slug: string): ReadyMadeAgent | undefined {
   return READY_MADE_AGENTS.find((a) => a.slug === slug);
+}
+
+export function getAgentLocalized(slug: string, locale: Locale): ReadyMadeAgent | undefined {
+  const a = getAgent(slug);
+  return a ? localizeAgent(a, locale) : undefined;
 }
 
 export function isValidAgentSlug(slug: string): boolean {

@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getDict } from "@/lib/i18n/server";
 
 export type LoginState = {
   error?: string;
@@ -23,16 +24,17 @@ export async function loginAction(
 ): Promise<LoginState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const t = await getDict();
 
   if (!email || !password) {
-    return { error: "Email et mot de passe requis." };
+    return { error: t.auth.actionEmailPwRequired };
   }
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    return { error: "Identifiants invalides. Vérifiez votre email et mot de passe." };
+    return { error: t.auth.actionInvalidCredentials };
   }
 
   redirect(resolveDestination(formData));

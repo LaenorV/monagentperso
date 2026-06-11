@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import AgentMarketplace from "@/components/AgentMarketplace";
+import { getLocale, dictFor } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Agents IA prêts à l'emploi — 4,90 € | MonAgentPerso",
-  description:
-    "Débloquez des agents ChatGPT et Claude experts, prêts à l'emploi, pour 4,90 € chacun : Humanizer, CV, Dissertation, Résumeur, Fiches & Quiz, et plus.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = dictFor(await getLocale());
+  return { title: t.agents.metaGptTitle, description: t.agents.metaGptDesc };
+}
 
 export default function AgentsGptPage() {
   return <AgentMarketplace initialFilter="gpt" />;

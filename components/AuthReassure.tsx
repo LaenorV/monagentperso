@@ -3,19 +3,19 @@
 import Link from "next/link";
 import { Lock, LayoutDashboard } from "lucide-react";
 import { useAuth } from "./AuthProvider";
+import { useLocale } from "@/lib/i18n/context";
 
 export default function AuthReassure() {
   const { user } = useAuth();
+  const { t } = useLocale();
 
   if (user) {
     return (
       <div className="auth-reassure">
         <span className="auth-reassure-ico"><LayoutDashboard size={18} strokeWidth={2.2} /></span>
-        <span className="auth-reassure-text">
-          Vous êtes connecté.
-        </span>
+        <span className="auth-reassure-text">{t.authReassure.connected}</span>
         <Link href="/dashboard" className="auth-reassure-cta">
-          Aller à mon espace →
+          {t.authReassure.goSpace}
         </Link>
       </div>
     );
@@ -24,11 +24,9 @@ export default function AuthReassure() {
   return (
     <div className="auth-reassure">
       <span className="auth-reassure-ico"><Lock size={18} strokeWidth={2.2} /></span>
-      <span className="auth-reassure-text">
-        Créez votre compte pour sauvegarder votre progression et accéder à votre espace personnel.
-      </span>
+      <span className="auth-reassure-text">{t.authReassure.createPrompt}</span>
       <Link href="/signup" className="auth-reassure-cta">
-        Créer mon compte gratuitement →
+        {t.authReassure.createCta}
       </Link>
     </div>
   );

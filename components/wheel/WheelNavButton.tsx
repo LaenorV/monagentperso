@@ -2,8 +2,10 @@
 
 import { Sparkles } from "lucide-react";
 import { openWheel } from "./openWheel";
+import { useLocale } from "@/lib/i18n/context";
 
 export default function WheelNavButton({ mobile = false }: { mobile?: boolean }) {
+  const { t } = useLocale();
   return (
     <button
       type="button"
@@ -11,8 +13,8 @@ export default function WheelNavButton({ mobile = false }: { mobile?: boolean })
       onClick={openWheel}
     >
       <Sparkles size={mobile ? 18 : 15} strokeWidth={2.2} />
-      Tourner la roue
-      <span className="wheel-new-badge">New</span>
+      {t.wheel.navLabel}
+      <span className="wheel-new-badge">{t.wheel.newBadge}</span>
     </button>
   );
 }

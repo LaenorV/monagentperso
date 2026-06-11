@@ -9,8 +9,9 @@ import {
   FileText,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getAgent } from "@/lib/ready-made-agents";
+import { getAgentLocalized } from "@/lib/ready-made-agents";
 import { getAgentInstructions } from "@/lib/agent-content";
+import { getLocale, dictFor } from "@/lib/i18n/server";
 import { getAgentGptUrl } from "@/lib/agent-links";
 import AgentBuyButton from "@/components/AgentBuyButton";
 import CopyBlock from "./CopyBlock";
@@ -23,8 +24,10 @@ export default async function PurchasedAgentPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const agent = getAgent(slug);
+  const locale = await getLocale();
+  const agent = getAgentLocalized(slug, locale);
   if (!agent) redirect("/marketplace");
+  const ad = dictFor(locale).agentDetail;
 
   const supabase = await createClient();
   const {
@@ -48,16 +51,16 @@ export default async function PurchasedAgentPage({
     return (
       <div className="container" style={{ padding: "60px 0 90px", maxWidth: 640 }}>
         <Link href="/marketplace" className="agents-toggle" style={{ marginBottom: 18 }}>
-          <ArrowLeft size={15} /> Retour à la marketplace
+          <ArrowLeft size={15} /> {ad.backMarketplace}
         </Link>
         <div className="dashboard-card" style={{ textAlign: "center" }}>
-          <h1 style={{ fontSize: 26 }}>Vous n'avez pas encore débloqué cet agent</h1>
+          <h1 style={{ fontSize: 26 }}>{ad.notUnlockedTitle}</h1>
           <p style={{ color: "var(--muted)", margin: "12px 0 20px" }}>
             <strong>{agent.name}</strong> — {agent.shortDescription}
           </p>
           <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
-            <AgentBuyButton slug={agent.slug} platform="gpt" priceLabel={agent.priceLabel} label={`Version ChatGPT · ${agent.priceLabel}`} />
-            <AgentBuyButton slug={agent.slug} platform="claude" priceLabel={agent.priceLabel} label={`Version Claude · ${agent.priceLabel}`} />
+            <AgentBuyButton slug={agent.slug} platform="gpt" priceLabel={agent.priceLabel} label={ad.versionGpt.replace("{price}", agent.priceLabel)} />
+            <AgentBuyButton slug={agent.slug} platform="claude" priceLabel={agent.priceLabel} label={ad.versionClaude.replace("{price}", agent.priceLabel)} />
           </div>
         </div>
       </div>
@@ -72,10 +75,10 @@ export default async function PurchasedAgentPage({
   return (
     <div className="container" style={{ padding: "48px 0 90px", maxWidth: 880 }}>
       <Link href="/dashboard" className="agents-toggle" style={{ marginBottom: 16 }}>
-        <ArrowLeft size={15} /> Mon espace
+        <ArrowLeft size={15} /> {ad.backSpace}
       </Link>
 
-      <span className="section-eyebrow">Agent débloqué</span>
+      <span className="section-eyebrow">{ad.eyebrow}</span>
       <h1 style={{ margin: "10px 0 6px" }}>{agent.name}</h1>
       <p style={{ color: "var(--muted)", lineHeight: 1.6 }}>{agent.shortDescription}</p>
 
@@ -85,7 +88,7 @@ export default async function PurchasedAgentPage({
           <div className="agent-card-head">
             <h2>
               <Bot size={18} strokeWidth={2.1} style={{ verticalAlign: "-3px", marginRight: 8 }} />
-              Votre agent ChatGPT
+              {ad.yourGpt}
             </h2>
             <span className="agent-badge agent-badge-gpt"><Bot size={11} strokeWidth={2.4} /> GPT</span>
           </div>
@@ -93,8 +96,7 @@ export default async function PurchasedAgentPage({
           {gptUrl ? (
             <>
               <p className="agent-card-sub" style={{ marginBottom: 16 }}>
-                Votre agent est déjà configuré et hébergé sur ChatGPT. Cliquez pour l'ouvrir, puis
-                discutez directement — aucune installation nécessaire.
+                {ad.gptIntro}
               </p>
               <a
                 href={gptUrl}
@@ -102,21 +104,18 @@ export default async function PurchasedAgentPage({
                 rel="noopener noreferrer"
                 className="btn btn-primary btn-xl agent-card-cta"
               >
-                Ouvrir mon agent GPT <ExternalLink size={18} strokeWidth={2.2} />
+                {ad.openGpt} <ExternalLink size={18} strokeWidth={2.2} />
               </a>
               <div className="agent-install" style={{ marginTop: 18 }}>
-                <h3 style={{ fontSize: 15, marginTop: 0 }}>Comment l'utiliser</h3>
+                <h3 style={{ fontSize: 15, marginTop: 0 }}>{ad.howToUse}</h3>
                 <ol style={{ lineHeight: 1.7, color: "var(--ink-2)", paddingLeft: 20, margin: 0 }}>
-                  <li>Cliquez sur « Ouvrir mon agent GPT » (un compte ChatGPT est nécessaire).</li>
-                  <li>Le GPT s'ajoute à votre barre latérale ChatGPT pour y revenir quand vous voulez.</li>
-                  <li>Décrivez votre besoin en langage naturel : l'agent est déjà entraîné.</li>
+                  {ad.gptSteps.map((s, i) => <li key={i}>{s}</li>)}
                 </ol>
               </div>
             </>
           ) : (
             <p className="agent-card-sub">
-              Le lien de votre agent GPT vous a été envoyé par email. Si vous ne le retrouvez pas,
-              contactez le support depuis votre espace.
+              {ad.gptLinkByEmail}
             </p>
           )}
         </div>
@@ -128,63 +127,44 @@ export default async function PurchasedAgentPage({
           <div className="agent-card-head">
             <h2>
               <Sparkles size={18} strokeWidth={2.1} style={{ verticalAlign: "-3px", marginRight: 8 }} />
-              Votre agent Claude
+              {ad.yourClaude}
             </h2>
             <span className="agent-badge agent-badge-claude"><Sparkles size={11} strokeWidth={2.4} /> Claude</span>
           </div>
 
           <p className="agent-card-sub" style={{ marginBottom: 14 }}>
-            Téléchargez vos deux fichiers, puis suivez le guide ci-dessous pour paramétrer votre agent
-            dans un <strong>Projet Claude</strong>.
+            {ad.claudeIntroPre}<strong>{ad.claudeIntroStrong}</strong>{ad.claudeIntroSuffix}
           </p>
 
           <div className="agent-files">
             <a href={`/api/agents/${slug}/claude`} className="btn btn-primary agent-file-btn">
-              <Download size={16} strokeWidth={2.2} /> Télécharger le fichier instructions (.md)
+              <Download size={16} strokeWidth={2.2} /> {ad.dlInstructions}
             </a>
             <a href={`/api/agents/${slug}/knowledge`} className="btn btn-beige agent-file-btn">
-              <Download size={16} strokeWidth={2.2} /> Télécharger la base de connaissance (PDF)
+              <Download size={16} strokeWidth={2.2} /> {ad.dlKnowledge}
             </a>
           </div>
 
           <div className="agent-install" style={{ marginTop: 18 }}>
-            <h3 style={{ fontSize: 16, marginTop: 0 }}>Paramétrer votre agent Claude (2 min)</h3>
+            <h3 style={{ fontSize: 16, marginTop: 0 }}>{ad.claudeSetupTitle}</h3>
             <ol style={{ lineHeight: 1.75, color: "var(--ink-2)", paddingLeft: 20, margin: "0 0 12px" }}>
-              <li>
-                Ouvrez <strong>claude.ai</strong> → menu <strong>« Projects »</strong> →{" "}
-                <strong>« Create project »</strong> (donnez-lui le nom de l'agent).
-              </li>
-              <li>
-                Ouvrez le projet, puis <strong>« Set custom instructions »</strong> (ou « Instructions »).
-                Collez-y <strong>tout le contenu du fichier .md</strong> téléchargé. Enregistrez.
-              </li>
-              <li>
-                Dans le projet, section <strong>« Project knowledge »</strong> →{" "}
-                <strong>« Add content »</strong> → uploadez le <strong>PDF de connaissance</strong>.
-              </li>
-              <li>
-                Démarrez une <strong>nouvelle conversation dans le projet</strong> : votre agent est prêt.
-              </li>
+              {ad.claudeSteps.map((s, i) => (
+                <li key={i} dangerouslySetInnerHTML={{ __html: s }} />
+              ))}
             </ol>
             <div className="agent-docs-note">
               <FileText size={15} strokeWidth={2.1} />
               <div>
-                <strong>Quels documents mettre dans « Project knowledge » ?</strong>
-                <p>
-                  Le <strong>PDF de connaissance fourni</strong> est indispensable (c'est le savoir
-                  de l'agent). Vous pouvez aussi y ajouter <strong>vos propres documents</strong> pour
-                  des réponses plus personnalisées — par exemple votre CV pour l'agent CV, votre cours
-                  pour Fiches &amp; Quiz, ou votre brief pour Slides. Le fichier <strong>.md</strong>,
-                  lui, va dans les <strong>instructions</strong> du projet, pas dans la connaissance.
-                </p>
+                <strong>{ad.docsNoteTitle}</strong>
+                <p dangerouslySetInnerHTML={{ __html: ad.docsNote }} />
               </div>
             </div>
           </div>
 
           {claude && (
             <details className="agent-copy-details">
-              <summary>Afficher / copier les instructions (au lieu de télécharger)</summary>
-              <CopyBlock title="Instructions — version Claude (Project)" text={claude} />
+              <summary>{ad.copyDetailsSummary}</summary>
+              <CopyBlock title={ad.copyTitle} text={claude} />
             </details>
           )}
         </div>

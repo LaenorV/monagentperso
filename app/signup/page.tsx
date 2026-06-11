@@ -4,11 +4,13 @@ import { useActionState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import GoogleSignInButton from "@/components/GoogleSignInButton";
+import { useLocale } from "@/lib/i18n/context";
 import { signupAction, type SignupState } from "./actions";
 
 const initialState: SignupState = {};
 
 function SignupForm() {
+  const { t } = useLocale();
   const params = useSearchParams();
   const next = params.get("next") ?? "";
   const redirect = params.get("redirect") ?? "";
@@ -22,67 +24,65 @@ function SignupForm() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1>Créer votre compte</h1>
+        <h1>{t.auth.signupTitle}</h1>
         <p className="auth-sub">
           {next === "questionnaire"
-            ? "Quelques secondes pour créer votre compte — le questionnaire s'ouvre juste après."
+            ? t.auth.signupSubQuestionnaire
             : redirect
-            ? "Créez votre compte pour débloquer cette ressource — vous reprenez juste après."
-            : "Quelques secondes pour accéder à votre espace et suivre la création de votre agent."}
+            ? t.auth.signupSubResource
+            : t.auth.signupSub}
         </p>
 
         {state.accountCreated ? (
           <>
-            <div className="auth-success">
-              ✓ Compte créé. Vous pouvez maintenant vous connecter.
-            </div>
+            <div className="auth-success">{t.auth.accountCreated}</div>
             <Link
               href={loginHref}
               className="btn btn-primary"
               style={{ width: "100%", marginTop: 14, justifyContent: "center" }}
             >
-              Se connecter →
+              {t.auth.goLogin}
             </Link>
           </>
         ) : (
           <>
-            <GoogleSignInButton next={next} label="S'inscrire avec Google" />
-            <div className="auth-divider"><span>ou par email</span></div>
+            <GoogleSignInButton next={next} mode="signup" />
+            <div className="auth-divider"><span>{t.auth.orByEmail}</span></div>
             <form action={formAction} className="auth-form">
             <input type="hidden" name="next" value={next} />
             <input type="hidden" name="redirect" value={redirect} />
             <div>
-              <label htmlFor="email">Email</label>
-              <input id="email" name="email" type="email" required autoComplete="email" placeholder="vous@exemple.fr" />
+              <label htmlFor="email">{t.auth.email}</label>
+              <input id="email" name="email" type="email" required autoComplete="email" placeholder={t.auth.emailPh} />
             </div>
             <div>
-              <label htmlFor="password">Mot de passe (8 caractères min.)</label>
+              <label htmlFor="password">{t.auth.passwordMin}</label>
               <input id="password" name="password" type="password" required autoComplete="new-password" minLength={8} />
             </div>
             <div>
-              <label htmlFor="passwordConfirm">Confirmation du mot de passe</label>
+              <label htmlFor="passwordConfirm">{t.auth.passwordConfirm}</label>
               <input id="passwordConfirm" name="passwordConfirm" type="password" required autoComplete="new-password" minLength={8} />
             </div>
             <div>
-              <label htmlFor="instagram">Identifiant Instagram <span style={{ color: "var(--muted-2)", fontWeight: 400 }}>(optionnel)</span></label>
-              <input id="instagram" name="instagram" type="text" autoComplete="off" placeholder="@votre_pseudo" />
+              <label htmlFor="instagram">{t.auth.instagram} <span style={{ color: "var(--muted-2)", fontWeight: 400 }}>{t.common.optional}</span></label>
+              <input id="instagram" name="instagram" type="text" autoComplete="off" placeholder={t.auth.instagramPh} />
             </div>
 
             {state.error && <div className="auth-error">{state.error}</div>}
 
             <button type="submit" className="btn btn-primary" disabled={pending}>
               {pending
-                ? "Création en cours…"
+                ? t.auth.signupPending
                 : next === "questionnaire"
-                ? "Créer mon compte et lancer le questionnaire →"
-                : "Créer mon compte →"}
+                ? t.auth.signupBtnQuestionnaire
+                : t.auth.signupBtn}
             </button>
             </form>
           </>
         )}
 
         <div className="auth-footer">
-          Déjà inscrit ? <Link href={loginHref}>Se connecter</Link>
+          {t.auth.alreadyMember} <Link href={loginHref}>{t.auth.loginLink}</Link>
         </div>
       </div>
     </div>
@@ -91,7 +91,7 @@ function SignupForm() {
 
 export default function SignupPage() {
   return (
-    <Suspense fallback={<div className="auth-page"><div className="auth-card">Chargement…</div></div>}>
+    <Suspense fallback={<div className="auth-page"><div className="auth-card">…</div></div>}>
       <SignupForm />
     </Suspense>
   );

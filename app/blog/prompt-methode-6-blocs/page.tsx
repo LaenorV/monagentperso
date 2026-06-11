@@ -1,15 +1,178 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { getLocale, dictFor } from "@/lib/i18n/server";
 
-export const metadata = {
-  title: "Écrire un prompt qui marche : la méthode des 6 blocs — MonAgentPerso",
-  description:
-    "Arrêtez d'improviser vos prompts. La méthode des 6 blocs (rôle, contexte, tâche, format, contraintes, exemples) + few-shot et raisonnement, avec un avant/après concret.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  if (locale === "en") {
+    return {
+      title: "Writing a prompt that works: the 6-block method — MonAgentPerso",
+      description:
+        "Stop improvising your prompts. The 6-block method (role, context, task, format, constraints, examples) + few-shot and reasoning, with a concrete before/after.",
+    };
+  }
+  return {
+    title: "Écrire un prompt qui marche : la méthode des 6 blocs — MonAgentPerso",
+    description:
+      "Arrêtez d'improviser vos prompts. La méthode des 6 blocs (rôle, contexte, tâche, format, contraintes, exemples) + few-shot et raisonnement, avec un avant/après concret.",
+  };
+}
 
-export default function ArticlePage() {
+export default async function ArticlePage() {
+  const locale = await getLocale();
+  const b = dictFor(locale).blog;
+  if (locale === "en") {
+    return (
+      <div className="container article">
+        <Link href="/blog" className="article-back">{b.backAll}</Link>
+        <div className="article-meta">
+          <span className="section-eyebrow">Method</span>
+          <span>· 7 min read</span>
+        </div>
+        <h1>Writing a prompt that works: the 6-block method</h1>
+        <p className="article-lead">
+          90% of failed prompts fail for one reason: they're vague. “Write me a LinkedIn post about AI” gives
+          generic mush because you gave nothing to aim at. Here's the exact structure pros use to get a usable
+          result on the first try — plus the 3 techniques that change everything when added at the right moment.
+        </p>
+
+        <div className="article-content">
+          <p>
+            A good prompt isn't a magic formula: it's a <strong>spec sheet</strong>. The more precisely the AI
+            knows what you expect, the less it invents. The good news is that all effective prompts contain the
+            same six bricks. Learn them once, reuse them everywhere.
+          </p>
+
+          <h2>1. The 6 blocks of an effective prompt</h2>
+          <p>
+            Whatever the trendy acronym (RTF, COSTAR, CRISPE…): they all describe the same thing. Here are the six
+            blocks, in a logical order.
+          </p>
+          <ul>
+            <li><strong>Role</strong> — who the AI should embody. “You are a senior tech recruiter.” This frames the vocabulary and the level of expectation.</li>
+            <li><strong>Context</strong> — the useful background: for whom, for what purpose, what project constraints.</li>
+            <li><strong>Task</strong> — the precise action, phrased with a verb: “write”, “compare”, “correct”, “classify”.</li>
+            <li><strong>Output format</strong> — the expected shape: “table”, “5 bullets”, “JSON”, “280 characters max”.</li>
+            <li><strong>Constraints</strong> — the tone, the length, the no-gos: “no jargon”, “formal address”, “don't invent any figures”.</li>
+            <li><strong>Examples</strong> — one or two illustrations of the desired result (we'll come back to it, it's the secret weapon).</li>
+          </ul>
+
+          <div className="article-callout">
+            <div className="article-callout-ico">✦</div>
+            <div>
+              <strong>The forgetting test</strong>
+              Reread your prompt and ask: “If I handed this to an intern who doesn't know me, could they manage?”
+              If the format or context is missing, the AI will flounder too.
+            </div>
+          </div>
+
+          <h2>2. Before / after: same need, two results</h2>
+          <p>Take a real case: a LinkedIn post.</p>
+          <p><strong>Weak prompt:</strong> “Write a LinkedIn post about remote work.”</p>
+          <p><strong>Structured prompt:</strong></p>
+          <blockquote>
+            Role: you are a B2B LinkedIn ghostwriter.<br />
+            Context: audience = SME executives, not very tech-savvy.<br />
+            Task: write a post on the hidden costs of badly organized remote work.<br />
+            Constraints: 130-170 words, expert but accessible tone, a hook of fewer than 10 words on the first
+            line, a single strong idea, a closing question, zero hollow buzzwords.<br />
+            Format: ready-to-publish text, airy paragraphs.<br />
+            Example of expected hook: “I scrapped our Monday meetings.”
+          </blockquote>
+          <p>
+            The second prompt leaves no gray area. The result: a text usable right away, instead of a generic
+            draft to rework for ten minutes.
+          </p>
+
+          <h2>3. The 3 techniques that make the difference</h2>
+
+          <h3>Examples (few-shot): show, don't describe</h3>
+          <p>
+            This is the most underrated lever. Rather than <em>describing</em> the desired style, <em>show</em> it
+            with 1 to 3 “input → output” examples. The AI imitates what it sees far better than what you explain.
+            To frame a client-reply format, paste two real replies you've already sent: the AI will mirror your
+            tone instantly.
+          </p>
+
+          <h3>Step-by-step reasoning: for logic and calculations</h3>
+          <p>
+            On a task that requires reasoning (analysis, comparison, calculation, argued choice), simply add:{" "}
+            <strong>“Reason step by step before concluding.”</strong> Accuracy rises noticeably, because you force
+            the AI to lay out its logic instead of jumping to an answer. Conversely, on a simple creative task,
+            it's useless — don't put it everywhere.
+          </p>
+
+          <h3>Decomposition: one task at a time</h3>
+          <p>
+            The classic mistake: “Summarize this article, propose a title, write a tweet and generate an image.”
+            The AI dilutes its attention and botches it. Break it down: ask for the summary, validate, then move
+            on. One prompt = one clear objective.
+          </p>
+
+          <h2>4. Turn your good prompts into reusable templates</h2>
+          <p>
+            As soon as a prompt works, stop rewriting it: <strong>parameterize it</strong>. Replace the parts that
+            change with readable fields in braces.
+          </p>
+          <blockquote>
+            You are {"{role}"}. Write {"{deliverable}"} for {"{audience}"}.<br />
+            Topic: {"{topic}"}. Tone: {"{tone}"}. Length: {"{length}"}. Format: {"{format}"}.
+          </blockquote>
+          <p>
+            You keep a single template and change the values as needed. Avoid cryptic names
+            (<code>{"{x}"}</code>, <code>{"{thing}"}</code>): a readable template gets reused and shared.
+          </p>
+
+          <h2>5. Adapt to the model you use</h2>
+          <ul>
+            <li><strong>Claude</strong> makes remarkable use of <strong>tags</strong> like <code>&lt;context&gt;…&lt;/context&gt;</code> to separate blocks, and accepts long, detailed instructions.</li>
+            <li><strong>ChatGPT</strong> prefers <strong>structured, concise</strong> instructions: role + imposed format + one example.</li>
+            <li>In all cases: <strong>structure (lists, sections) beats a wall of text.</strong></li>
+          </ul>
+
+          <h2>6. The 5 mistakes that sink a prompt</h2>
+          <ul>
+            <li><strong>Vagueness</strong> (“help me with my marketing”): no target.</li>
+            <li><strong>No imposed format</strong>: the answer goes all over the place.</li>
+            <li><strong>No example</strong>: bland, “recognizably AI” style.</li>
+            <li><strong>Overload</strong>: three tasks in a single prompt.</li>
+            <li><strong>Implicit constraints</strong>: you expected 100 words, you get 600. Say so.</li>
+          </ul>
+
+          <div className="article-callout">
+            <div className="article-callout-ico">⚡</div>
+            <div>
+              <strong>The winning reflex</strong>
+              The perfect first-try prompt doesn't exist. Launch a structured v1, see what's off, adjust <em>one</em>
+              block at a time. Three iterations are almost always enough.
+            </div>
+          </div>
+
+          <h2>In short</h2>
+          <p>
+            An effective prompt holds in six blocks: <strong>role, context, task, format, constraints,
+            examples</strong>. Add <strong>examples</strong> to frame the style, <strong>step-by-step
+            reasoning</strong> for logic, and <strong>decompose</strong> complex tasks. Parameterize what works,
+            adapt to the model, and iterate. You'll go from “correct answers” to “directly usable answers” — which
+            is exactly the difference between a generic ChatGPT and a well-designed agent.
+          </p>
+        </div>
+
+        <div className="article-cta">
+          <h3>Don't feel like crafting your prompts by hand?</h3>
+          <p>
+            Our ready-to-use agents already embed these methods — including a prompt generator. Unlock it for
+            €4.90 in the marketplace.
+          </p>
+          <Link href="/agents-gpt" className="btn btn-primary btn-xl">See the ready-to-use agents →</Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container article">
-      <Link href="/blog" className="article-back">← Tous les articles</Link>
+      <Link href="/blog" className="article-back">{b.backAll}</Link>
       <div className="article-meta">
         <span className="section-eyebrow">Méthode</span>
         <span>· 7 min de lecture</span>

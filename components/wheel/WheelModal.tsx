@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, Gift, Sparkles, Copy, Check, PartyPopper } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
+import { useLocale } from "@/lib/i18n/context";
 import { WHEEL_EVENT, PENDING_WHEEL_KEY, WHEEL_SEEN_KEY } from "./openWheel";
 
 type ResultType =
@@ -41,7 +42,16 @@ const CONIC = `conic-gradient(from -18deg, ${SEGMENTS.map(
 
 export default function WheelModal() {
   const { user } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
+
+  // Libellé localisé d'un segment, dérivé de son type (la logique reste sur `type`).
+  function segShort(type: ResultType): string {
+    if (type === "personalized_discount_30") return t.wheel.seg30;
+    if (type === "marketplace_free") return t.wheel.segOffered;
+    if (type === "personalized_free") return t.wheel.segFreeAgent;
+    return t.wheel.segLose;
+  }
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<"loading" | "intro" | "spinning" | "result">("loading");
   const [result, setResult] = useState<SpinResult | null>(null);
@@ -171,7 +181,7 @@ export default function WheelModal() {
         } catch {
           /* ignore */
         }
-        setErrorMsg("Le tirage est momentanément indisponible. Réessayez plus tard.");
+        setErrorMsg(t.wheel.errUnavailable);
         return;
       }
 
@@ -208,7 +218,7 @@ export default function WheelModal() {
       }, 4400);
     } catch {
       setBusy(false);
-      setErrorMsg("Erreur réseau — réessayez.");
+      setErrorMsg(t.wheel.errNetwork);
     }
   }
 
@@ -228,10 +238,10 @@ export default function WheelModal() {
   const won = result && cat(result.result_type) !== "lose";
 
   return (
-    <div className="wheel-modal" role="dialog" aria-modal="true" aria-label="Roue promotionnelle">
+    <div className="wheel-modal" role="dialog" aria-modal="true" aria-label={t.wheel.dialogLabel}>
       <div className="wheel-backdrop" onClick={close} />
       <div className="wheel-card">
-        <button type="button" className="wheel-close" onClick={close} aria-label="Fermer">
+        <button type="button" className="wheel-close" onClick={close} aria-label={t.wheel.closeLabel}>
           <X size={20} />
         </button>
 
@@ -249,7 +259,7 @@ export default function WheelModal() {
             {SEGMENTS.map((s, i) => (
               <span key={i} className="wheel-label" style={{ transform: `rotate(${i * 36}deg)` }}>
                 <span className="wheel-label-txt" style={{ color: s.ink ? "#fff" : "#3a2f20" }}>
-                  {s.short}
+                  {segShort(s.type)}
                 </span>
               </span>
             ))}
@@ -262,17 +272,15 @@ export default function WheelModal() {
         {/* LOADING — on attend la vérification serveur avant tout */}
         {phase === "loading" && (
           <div className="wheel-panel">
-            <p className="wheel-sub">Chargement…</p>
+            <p className="wheel-sub">{t.wheel.loading}</p>
           </div>
         )}
 
         {/* INTRO */}
         {phase === "intro" && (
           <div className="wheel-panel">
-            <h2 className="wheel-title">Tentez votre chance 🎁</h2>
-            <p className="wheel-sub">
-              Tournez la roue et débloquez peut-être une réduction… ou un agent offert.
-            </p>
+            <h2 className="wheel-title">{t.wheel.introTitle}</h2>
+            <p className="wheel-sub">{t.wheel.introSub}</p>
             {errorMsg && <p className="wheel-error">⚠ {errorMsg}</p>}
             <div className="wheel-actions">
               <button
@@ -282,87 +290,77 @@ export default function WheelModal() {
                 disabled={busy || hasSpun}
               >
                 <Sparkles size={18} strokeWidth={2.2} />{" "}
-                {busy ? "Tirage en cours…" : hasSpun ? "Vous avez déjà utilisé votre tour" : "Tourner la roue"}
+                {busy ? t.wheel.spinning : hasSpun ? t.wheel.alreadyUsed : t.wheel.spinBtn}
               </button>
               <button type="button" className="btn btn-light" onClick={close}>
-                Plus tard
+                {t.wheel.later}
               </button>
             </div>
-            <p className="wheel-note">Un seul tirage par compte, à vie.</p>
+            <p className="wheel-note">{t.wheel.oneSpinNote}</p>
           </div>
         )}
 
         {/* SPINNING */}
         {phase === "spinning" && (
           <div className="wheel-panel">
-            <p className="wheel-sub">La roue tourne…</p>
+            <p className="wheel-sub">{t.wheel.wheelTurning}</p>
           </div>
         )}
 
         {/* RESULT */}
         {phase === "result" && result && (
           <div className="wheel-panel">
-            {reopened && (
-              <p className="wheel-error">
-                ⚠ Vous avez déjà tourné la roue — vous ne pouvez pas la retourner.
-                Voici le résultat de votre unique tirage.
-              </p>
-            )}
+            {reopened && <p className="wheel-error">⚠ {t.wheel.reopenWarning}</p>}
             {won ? (
               <>
                 <div className="wheel-win-ico"><PartyPopper size={30} strokeWidth={1.9} /></div>
                 <h2 className="wheel-title">
-                  {cat(result.result_type) === "pfree" ? "Incroyable !" : "Bravo !"}
+                  {cat(result.result_type) === "pfree" ? t.wheel.winTitleBig : t.wheel.winTitle}
                 </h2>
                 <p className="wheel-result-label">
-                  {cat(result.result_type) === "p30" && "Vous avez gagné -30 % sur votre agent personnalisé."}
-                  {cat(result.result_type) === "mfree" && "Vous avez gagné un achat offert dans la marketplace."}
-                  {cat(result.result_type) === "pfree" && "Votre agent personnalisé est offert."}
+                  {cat(result.result_type) === "p30" && t.wheel.won30}
+                  {cat(result.result_type) === "mfree" && t.wheel.wonMarketplace}
+                  {cat(result.result_type) === "pfree" && t.wheel.wonFree}
                 </p>
                 {result.promo_code && (
-                  <button type="button" className="wheel-code" onClick={copyCode} title="Copier le code">
+                  <button type="button" className="wheel-code" onClick={copyCode} title={t.wheel.copyTitle}>
                     <span>{result.promo_code}</span>
                     {copied ? <Check size={16} /> : <Copy size={16} />}
                   </button>
                 )}
                 <p className="wheel-note">
-                  {cat(result.result_type) === "mfree"
-                    ? "À saisir dans la marketplace, au moment de débloquer un agent."
-                    : "À saisir après le questionnaire, avant le paiement. Retrouvez-le aussi dans « Mes avantages »."}
+                  {cat(result.result_type) === "mfree" ? t.wheel.noteMarketplace : t.wheel.noteAgent}
                 </p>
                 <div className="wheel-actions">
                   {cat(result.result_type) === "mfree" ? (
                     <a href="/agents-gpt" className="btn btn-primary btn-xl" onClick={close}>
-                      Aller à la marketplace →
+                      {t.wheel.gotoMarketplace}
                     </a>
                   ) : (
                     <a href="/" className="btn btn-primary btn-xl" onClick={close}>
-                      Réclamer mon agent →
+                      {t.wheel.claimAgent}
                     </a>
                   )}
                   <button type="button" className="btn btn-light" onClick={close}>
-                    Fermer
+                    {t.wheel.closeLabel}
                   </button>
                 </div>
               </>
             ) : (
               <>
-                <h2 className="wheel-title">Mince, une prochaine fois peut-être !</h2>
-                <p className="wheel-sub">
-                  En attendant, vous pouvez réclamer votre agent personnalisé ou faire un tour sur la
-                  marketplace.
-                </p>
+                <h2 className="wheel-title">{t.wheel.loseTitle}</h2>
+                <p className="wheel-sub">{t.wheel.loseSub}</p>
                 <div className="wheel-actions">
                   <a href="/" className="btn btn-primary btn-xl" onClick={close}>
-                    Réclamer mon agent →
+                    {t.wheel.claimAgent}
                   </a>
                   <a href="/agents-gpt" className="btn btn-light" onClick={close}>
-                    Voir la marketplace
+                    {t.wheel.seeMarketplace}
                   </a>
                 </div>
               </>
             )}
-            <p className="wheel-note">Vous avez utilisé votre unique tirage.</p>
+            <p className="wheel-note">{t.wheel.usedNote}</p>
           </div>
         )}
       </div>

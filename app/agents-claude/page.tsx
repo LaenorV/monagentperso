@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import AgentMarketplace from "@/components/AgentMarketplace";
+import { getLocale, dictFor } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Agents Claude prêts à l'emploi — 4,90 € | MonAgentPerso",
-  description:
-    "Débloquez des agents Claude experts, optimisés pour les Projets Claude (artifacts, contexte long), pour 4,90 € chacun.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = dictFor(await getLocale());
+  return { title: t.agents.metaClaudeTitle, description: t.agents.metaClaudeDesc };
+}
 
 export default function AgentsClaudePage() {
   return <AgentMarketplace initialFilter="claude" />;

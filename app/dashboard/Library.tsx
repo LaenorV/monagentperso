@@ -14,6 +14,8 @@ import {
   AlertTriangle,
   Library as LibraryIcon,
 } from "lucide-react";
+import { useLocale } from "@/lib/i18n/context";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 export type LibraryItemKind =
   | "both"
@@ -36,15 +38,28 @@ export type LibraryItem = {
 };
 
 const FILTERS = [
-  { key: "all", label: "Tous" },
-  { key: "gpt", label: "Agents GPT" },
-  { key: "claude", label: "Agents Claude" },
-  { key: "prompt", label: "Prompts" },
-  { key: "workflow", label: "Workflows" },
-  { key: "custom", label: "Agents personnalisés" },
+  { key: "all" },
+  { key: "gpt" },
+  { key: "claude" },
+  { key: "prompt" },
+  { key: "workflow" },
+  { key: "custom" },
 ] as const;
 
 type FilterKey = (typeof FILTERS)[number]["key"];
+
+type Dash = Dictionary["dashboard"];
+
+function filterLabel(key: FilterKey, d: Dash): string {
+  return {
+    all: d.filterAll,
+    gpt: d.filterGpt,
+    claude: d.filterClaude,
+    prompt: d.filterPrompt,
+    workflow: d.filterWorkflow,
+    custom: d.filterCustom,
+  }[key];
+}
 
 function matches(item: LibraryItem, f: FilterKey): boolean {
   if (f === "all") return true;
@@ -53,7 +68,7 @@ function matches(item: LibraryItem, f: FilterKey): boolean {
   return item.kind === f;
 }
 
-function Badges({ kind }: { kind: LibraryItemKind }) {
+function Badges({ kind, d }: { kind: LibraryItemKind; d: Dash }) {
   return (
     <div className="agent-card-badges">
       {(kind === "gpt" || kind === "both") && (
@@ -63,23 +78,23 @@ function Badges({ kind }: { kind: LibraryItemKind }) {
         <span className="agent-badge agent-badge-claude"><Sparkles size={11} strokeWidth={2.4} /> Claude</span>
       )}
       {kind === "custom" && (
-        <span className="agent-badge agent-badge-custom"><Star size={11} strokeWidth={2.4} /> Personnalisé</span>
+        <span className="agent-badge agent-badge-custom"><Star size={11} strokeWidth={2.4} /> {d.badgeCustom}</span>
       )}
       {kind === "prompt" && (
-        <span className="agent-badge agent-badge-prompt"><FileText size={11} strokeWidth={2.4} /> Prompt</span>
+        <span className="agent-badge agent-badge-prompt"><FileText size={11} strokeWidth={2.4} /> {d.badgePrompt}</span>
       )}
       {kind === "workflow" && (
-        <span className="agent-badge agent-badge-workflow"><Workflow size={11} strokeWidth={2.4} /> Workflow</span>
+        <span className="agent-badge agent-badge-workflow"><Workflow size={11} strokeWidth={2.4} /> {d.badgeWorkflow}</span>
       )}
     </div>
   );
 }
 
-function StatusBadge({ status }: { status: NonNullable<LibraryItem["status"]> }) {
+function StatusBadge({ status, d }: { status: NonNullable<LibraryItem["status"]>; d: Dash }) {
   const map = {
-    en_cours: { label: "En cours", cls: "status-badge-pending", Icon: Clock },
-    livre: { label: "Livré", cls: "status-badge-delivered", Icon: CheckCircle2 },
-    revision: { label: "Modification en cours", cls: "status-badge-revision", Icon: AlertTriangle },
+    en_cours: { label: d.statusEnCours, cls: "status-badge-pending", Icon: Clock },
+    livre: { label: d.statusLivre, cls: "status-badge-delivered", Icon: CheckCircle2 },
+    revision: { label: d.statusRevision, cls: "status-badge-revision", Icon: AlertTriangle },
   }[status];
   const Icon = map.Icon;
   return (
@@ -89,17 +104,17 @@ function StatusBadge({ status }: { status: NonNullable<LibraryItem["status"]> })
   );
 }
 
-function ItemButton({ item }: { item: LibraryItem }) {
+function ItemButton({ item, d }: { item: LibraryItem; d: Dash }) {
   if (item.locked || !item.href) {
     const label =
       item.status === "livre"
-        ? "Accès envoyé par email"
+        ? d.accessByEmail
         : item.status === "en_cours" || item.status === "revision"
-        ? "En cours de préparation"
-        : "Bientôt disponible";
+        ? d.preparing
+        : d.comingSoon;
     return <span className="btn btn-light btn-nav lib-btn-disabled">{label}</span>;
   }
-  const label = item.kind === "custom" ? "Ouvrir mon agent" : "Ouvrir";
+  const label = item.kind === "custom" ? d.openMyAgent : d.open;
   if (item.external) {
     return (
       <a href={item.href} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-nav">
@@ -115,20 +130,23 @@ function ItemButton({ item }: { item: LibraryItem }) {
 }
 
 export default function Library({ items }: { items: LibraryItem[] }) {
+  const { t, locale } = useLocale();
+  const d = t.dashboard;
+  const dateLocale = locale === "en" ? "en-US" : "fr-FR";
   const [filter, setFilter] = useState<FilterKey>("all");
   const visible = items.filter((i) => matches(i, filter));
 
   return (
     <div className="dashboard-card library">
       <div className="agent-card-head">
-        <h2><LibraryIcon size={20} strokeWidth={2} style={{ verticalAlign: "-3px", marginRight: 8 }} />Ma bibliothèque</h2>
-        <Link href="/agents-gpt" className="btn btn-light btn-nav">Découvrir la marketplace</Link>
+        <h2><LibraryIcon size={20} strokeWidth={2} style={{ verticalAlign: "-3px", marginRight: 8 }} />{d.libTitle}</h2>
+        <Link href="/agents-gpt" className="btn btn-light btn-nav">{d.libDiscover}</Link>
       </div>
 
       {items.length === 0 ? (
         <div className="library-empty">
-          <p>Vous n'avez pas encore débloqué de ressource.</p>
-          <Link href="/agents-gpt" className="btn btn-primary">Découvrir la marketplace →</Link>
+          <p>{d.libEmpty}</p>
+          <Link href="/agents-gpt" className="btn btn-primary">{d.libEmptyCta}</Link>
         </div>
       ) : (
         <>
@@ -144,7 +162,7 @@ export default function Library({ items }: { items: LibraryItem[] }) {
                   className={`library-tab ${filter === f.key ? "library-tab-active" : ""}`}
                   onClick={() => setFilter(f.key)}
                 >
-                  {f.label}
+                  {filterLabel(f.key, d)}
                   <span className="library-tab-count">{count}</span>
                 </button>
               );
@@ -152,22 +170,22 @@ export default function Library({ items }: { items: LibraryItem[] }) {
           </div>
 
           {visible.length === 0 ? (
-            <p className="library-empty-filter">Aucune ressource dans cette catégorie pour l'instant.</p>
+            <p className="library-empty-filter">{d.libEmptyFilter}</p>
           ) : (
             <div className="library-grid">
               {visible.map((item) => (
                 <article className="library-item" key={item.key}>
                   <div className="library-item-top">
                     <div className="purchased-agent-logo">{item.name.charAt(0)}</div>
-                    <Badges kind={item.kind} />
+                    <Badges kind={item.kind} d={d} />
                   </div>
                   <span className="agent-card-cat">{item.category}</span>
                   <h3 className="library-item-name">{item.name}</h3>
                   <div className="library-item-meta">
-                    {item.status && <StatusBadge status={item.status} />}
+                    {item.status && <StatusBadge status={item.status} d={d} />}
                     {item.date && (
                       <span className="purchased-agent-date">
-                        {new Date(item.date).toLocaleDateString("fr-FR", {
+                        {new Date(item.date).toLocaleDateString(dateLocale, {
                           day: "numeric",
                           month: "long",
                           year: "numeric",
@@ -176,7 +194,7 @@ export default function Library({ items }: { items: LibraryItem[] }) {
                     )}
                   </div>
                   <div className="library-item-foot">
-                    <ItemButton item={item} />
+                    <ItemButton item={item} d={d} />
                   </div>
                 </article>
               ))}
