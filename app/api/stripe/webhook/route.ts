@@ -290,19 +290,24 @@ async function handleReadyMadeAgent(session: Stripe.Checkout.Session) {
   const slug = session.metadata?.agent_slug ?? "";
   const name = session.metadata?.agent_name ?? "";
   const type = session.metadata?.agent_type ?? null;
-  const userId = session.metadata?.user_id ?? null;
+  const email =
+    session.customer_email ?? session.customer_details?.email ?? null;
+  let userId = session.metadata?.user_id ?? null;
 
   console.log(
     "[/api/stripe/webhook] ready_made_agent | slug:",
     slug,
     "| user:",
     userId,
+    "| email:",
+    email,
     "| session:",
     session.id,
   );
 
-  if (!slug || !userId) {
-    console.warn("[/api/stripe/webhook] metadata agent incomplète — ignoré:", session.id);
+  // Le slug est indispensable. Sans lui, on ne peut rien rattacher.
+  if (!slug) {
+    console.warn("[/api/stripe/webhook] metadata agent sans slug — ignoré:", session.id);
     return NextResponse.json({ received: true, warning: "incomplete_metadata" });
   }
 
@@ -314,10 +319,31 @@ async function handleReadyMadeAgent(session: Stripe.Checkout.Session) {
     return NextResponse.json({ error: "admin_client_error" }, { status: 500 });
   }
 
+  // Robustesse : si user_id absent du metadata mais email présent (Stripe),
+  // on tente de retrouver l'utilisateur par email (profils créés à l'inscription).
+  // Sans user_id résolu, la ligne reste tracée par email pour récupération manuelle.
+  if (!userId && email) {
+    const { data: prof } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+    if (prof?.id) {
+      userId = prof.id;
+      console.log("[/api/stripe/webhook] user_id résolu par email:", email, "→", userId);
+    } else {
+      console.warn(
+        "[/api/stripe/webhook] user_id absent et introuvable par email:",
+        email,
+        "— ligne tracée par email uniquement.",
+      );
+    }
+  }
+
   // Insert idempotent (stripe_checkout_session_id UNIQUE)
   const { error: insErr } = await admin.from("ready_made_agent_purchases").insert({
     user_id: userId,
-    email: session.customer_email ?? null,
+    email,
     agent_slug: slug,
     agent_name: name,
     agent_type: type,

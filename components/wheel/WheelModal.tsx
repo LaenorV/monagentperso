@@ -245,6 +245,11 @@ export default function WheelModal() {
           <X size={20} />
         </button>
 
+        {/* Avertissement TRÈS visible au-dessus de la roue : déjà tourné. */}
+        {reopened && (
+          <p className="wheel-blocked" role="alert">⚠ {t.wheel.reopenWarning}</p>
+        )}
+
         {/* La roue (toujours visible) */}
         <div className="wheel-stage">
           <div className="wheel-pointer" />
@@ -310,7 +315,6 @@ export default function WheelModal() {
         {/* RESULT */}
         {phase === "result" && result && (
           <div className="wheel-panel">
-            {reopened && <p className="wheel-error">⚠ {t.wheel.reopenWarning}</p>}
             {won ? (
               <>
                 <div className="wheel-win-ico"><PartyPopper size={30} strokeWidth={1.9} /></div>

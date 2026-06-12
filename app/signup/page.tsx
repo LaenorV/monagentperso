@@ -32,6 +32,7 @@ function SignupForm() {
             ? t.auth.signupSubResource
             : t.auth.signupSub}
         </p>
+        <p className="auth-incentive">✦ {t.auth.incentive}</p>
 
         {state.accountCreated ? (
           <>

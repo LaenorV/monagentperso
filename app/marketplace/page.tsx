@@ -46,6 +46,7 @@ import {
   type MarketplaceTool,
 } from "@/lib/data/marketplace";
 import MarketplaceControls from "./MarketplaceControls";
+import ToolSignupGate from "@/components/ToolSignupGate";
 import { getDict, getLocale, dictFor } from "@/lib/i18n/server";
 import type { Dictionary } from "@/lib/i18n/dictionaries";
 
@@ -158,6 +159,7 @@ export default async function MarketplacePage({
 
   return (
     <div className="mk">
+      <ToolSignupGate />
       {/* === BANNIÈRE INSTAGRAM (bien visible, en haut) === */}
       <div className="container">
         <a

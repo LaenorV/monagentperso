@@ -10,6 +10,7 @@ import Library, { type LibraryItem, type LibraryItemKind } from "./Library";
 import { getAgentLocalized } from "@/lib/ready-made-agents";
 import ResumePurchaseBanner from "@/components/ResumePurchaseBanner";
 import MyAdvantages, { type PromoRow } from "./MyAdvantages";
+import PurchasedAgents, { type AgentPurchaseRow } from "./PurchasedAgents";
 import { getLocale, dictFor } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
@@ -187,6 +188,8 @@ export default async function DashboardPage() {
         spun={!!spin}
         spinLabel={spin?.result_label ?? null}
       />
+
+      <PurchasedAgents purchases={(agentPurchases ?? []) as AgentPurchaseRow[]} />
 
       <Library items={libraryItems} />
 

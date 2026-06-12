@@ -1805,6 +1805,21 @@ h1{margin:24px 0 0;max-width:780px;font-size:clamp(46px,5.8vw,76px);line-height:
 .wheel-actions .btn{justify-content:center}
 .wheel-note{color:var(--muted-2);font-size:12.5px;margin-top:12px;line-height:1.5}
 .wheel-error{color:var(--danger);font-size:13px;font-weight:600;margin:10px 0 0}
+.wheel-blocked{margin:0 0 14px;padding:11px 14px;border-radius:10px;background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.45);color:var(--danger);font-weight:700;font-size:14px;text-align:center;line-height:1.45}
+
+/* === Modale d'incitation a l'inscription (base outils IA) === */
+.signup-gate{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.signup-gate-backdrop{position:absolute;inset:0;background:rgba(7,12,18,.55);backdrop-filter:blur(2px)}
+.signup-gate-card{position:relative;z-index:1;width:100%;max-width:420px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg,0 24px 60px rgba(0,0,0,.25));padding:30px 26px;text-align:center;animation:gate-pop .22s cubic-bezier(.16,.7,.27,1)}
+@keyframes gate-pop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+.signup-gate-close{position:absolute;top:12px;right:12px;border:none;background:transparent;color:var(--muted);cursor:pointer;padding:4px;border-radius:8px;line-height:0}
+.signup-gate-close:hover{background:rgba(0,0,0,.05);color:var(--ink)}
+.signup-gate-ico{display:flex;justify-content:center;color:var(--brand,#00C8FF);margin-bottom:10px}
+.signup-gate-title{font-size:22px;margin:0 0 8px}
+.signup-gate-text{color:var(--muted);font-size:15px;line-height:1.55;margin:0 0 20px}
+.signup-gate-actions{display:flex;flex-direction:column;gap:10px}
+.signup-gate-actions .btn{width:100%;justify-content:center}
+.auth-incentive{margin:0 0 18px;padding:10px 14px;border-radius:10px;background:rgba(0,200,255,.08);border:1px solid rgba(0,200,255,.28);color:var(--ink);font-size:14px;font-weight:600;line-height:1.5}
 
 /* === Sélecteur de langue (drapeaux) === */
 .lang-switch{display:inline-flex;align-items:center;gap:4px;margin-right:6px}
